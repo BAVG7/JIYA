@@ -43,6 +43,7 @@ button{cursor:pointer;border:none;background:none;color:inherit}
 .sync-dot.sync-synced{background:var(--green);box-shadow:0 0 6px rgba(126,200,126,.5)}
 .sync-dot.sync-error{background:var(--red);box-shadow:0 0 6px rgba(200,126,126,.5)}
 .sync-dot.sync-offline{background:var(--orange)}
+.sync-dot.sync-needsAuth{background:var(--orange);box-shadow:0 0 6px rgba(232,168,84,.5);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
 .content{padding:20px;display:flex;flex-direction:column;gap:16px}
@@ -196,7 +197,17 @@ function getCategoryById(id) { return getAllCategories().find(c => c.id === id);
 // Legacy CATS (still used by morning "areas focused on" — keep working)
 const CATS = ["Work/Career","Health/Fitness","Relationships","Finances","Learning/Growth","Side Projects","Mental Health","Creative","Life Admin"];
 
-const today = () => new Date().toISOString().split("T")[0];
+// Local-timezone date key (YYYY-MM-DD). Uses local time components so "today"
+// reflects the user's wall clock, not UTC — fixes the bug where logging after
+// 8pm EDT / 7pm EST rolled entries to the next day.
+const dateKey = d => {
+  d = d || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+};
+const today = () => dateKey();
 const nowISO = () => new Date().toISOString();
 const weekOf = d => { const x=new Date(d+"T12:00:00"); x.setDate(x.getDate()-x.getDay()); return x.toISOString().split("T")[0]; };
 const monthOf = d => d.slice(0,7);
@@ -310,13 +321,14 @@ let state = {
     ready: false,        // gapi + GIS both loaded
     signedIn: false,
     tokenClient: null,   // GIS token client
-    accessToken: null,   // current bearer token (memory only)
+    accessToken: null,   // current bearer token (cached in localStorage)
     tokenExpiresAt: 0,   // ms timestamp
-    status: "idle",      // idle | syncing | synced | error | offline
+    status: "idle",      // idle | syncing | synced | error | offline | needsAuth
     lastSyncAt: null,    // ISO timestamp
     lastError: null,
     syncTimer: null,     // debounce timer
     userEmail: null,
+    silentAttempted: false, // have we tried silent refresh this session?
   },
 };
 
@@ -406,6 +418,7 @@ function setDriveStatus(status, error) {
                 status === "syncing" ? "Syncing…" :
                 status === "error" ? ("Sync error: " + (error||"unknown")) :
                 status === "offline" ? "Offline — changes saved locally" :
+                status === "needsAuth" ? "Tap to reconnect Drive" :
                 "Not signed in to Drive";
   }
 }
@@ -426,13 +439,24 @@ function driveInit() {
         prompt: "",
         callback: (response) => {
           if(response.error) {
-            setDriveStatus("error", response.error);
+            // Silent refresh failed (e.g. PWA cookie jar stale). Don't error-nag
+            // the user — flip to needsAuth so they can one-tap reconnect.
+            clearCachedToken();
+            state.drive.signedIn = false;
+            setDriveStatus("needsAuth", response.error);
+            render();
             return;
           }
+          const expiresAt = Date.now() + (response.expires_in * 1000) - 60000; // refresh 1 min early
           state.drive.accessToken = response.access_token;
-          state.drive.tokenExpiresAt = Date.now() + (response.expires_in * 1000) - 60000; // refresh 1 min early
+          state.drive.tokenExpiresAt = expiresAt;
           state.drive.signedIn = true;
           DB.set("driveSignedIn", {flag: true});
+          // Persist the token so the next cold launch within ~55 min needs zero auth round-trip.
+          DB.set("driveToken", {
+            accessToken: response.access_token,
+            expiresAt: expiresAt,
+          });
           gapi.client.setToken({access_token: response.access_token});
           setDriveStatus("synced");
           fetchUserEmail();
@@ -442,16 +466,44 @@ function driveInit() {
         },
       });
       state.drive.ready = true;
-      // Auto-attempt silent sign-in if previously signed in
+
+      // ─── Layer 1: restore cached token from last session ───
+      const cached = DB.get("driveToken");
+      if(cached.accessToken && cached.expiresAt && Date.now() < cached.expiresAt) {
+        // Cached token is still valid — use it directly, no Google round-trip.
+        state.drive.accessToken = cached.accessToken;
+        state.drive.tokenExpiresAt = cached.expiresAt;
+        state.drive.signedIn = true;
+        gapi.client.setToken({access_token: cached.accessToken});
+        setDriveStatus("synced");
+        fetchUserEmail();
+        render();
+        // Opportunistic sync on boot (any pending local changes)
+        scheduleDriveSync(500);
+        return;
+      }
+
+      // No valid cached token. If user was previously signed in, try ONE silent refresh.
+      // If it fails (common in PWA mode), we flip to needsAuth rather than nagging.
       const wasSignedIn = DB.get("driveSignedIn").flag;
       if(wasSignedIn) {
-        driveSignIn(true); // silent
+        state.drive.signedIn = true; // optimistic — callback will correct if silent fails
+        state.drive.silentAttempted = true;
+        setDriveStatus("syncing"); // briefly show we're trying
+        state.drive.tokenClient.requestAccessToken({prompt: ""});
+      } else {
+        render();
       }
-      render();
     } catch(e) {
       setDriveStatus("error", "Failed to load Drive API: " + e.message);
     }
   });
+}
+
+function clearCachedToken() {
+  state.drive.accessToken = null;
+  state.drive.tokenExpiresAt = 0;
+  DB.set("driveToken", {});
 }
 
 function driveSignIn(silent) {
@@ -466,10 +518,10 @@ function driveSignOut() {
   if(state.drive.accessToken && google?.accounts?.oauth2) {
     google.accounts.oauth2.revoke(state.drive.accessToken, () => {});
   }
-  state.drive.accessToken = null;
-  state.drive.tokenExpiresAt = 0;
+  clearCachedToken();
   state.drive.signedIn = false;
   state.drive.userEmail = null;
+  state.drive.silentAttempted = false;
   DB.set("driveSignedIn", {flag: false});
   setDriveStatus("idle");
   render();
@@ -498,16 +550,23 @@ function ensureFreshToken() {
       reject(new Error("Not initialized"));
       return;
     }
-    // Re-request silently
+    // Token is stale. Try ONE silent refresh. If it fails, surface needsAuth
+    // and reject cleanly so the caller can route to a friendly UI state.
     const oldCallback = state.drive.tokenClient.callback;
     state.drive.tokenClient.callback = (response) => {
       state.drive.tokenClient.callback = oldCallback;
       if(response.error) {
-        reject(new Error(response.error));
+        clearCachedToken();
+        reject(new Error("NEEDS_AUTH"));
         return;
       }
+      const expiresAt = Date.now() + (response.expires_in * 1000) - 60000;
       state.drive.accessToken = response.access_token;
-      state.drive.tokenExpiresAt = Date.now() + (response.expires_in * 1000) - 60000;
+      state.drive.tokenExpiresAt = expiresAt;
+      DB.set("driveToken", {
+        accessToken: response.access_token,
+        expiresAt: expiresAt,
+      });
       gapi.client.setToken({access_token: response.access_token});
       resolve();
     };
@@ -601,8 +660,23 @@ async function performDriveSync() {
     ]);
     setDriveStatus("synced");
   } catch(e) {
+    if(e.message === "NEEDS_AUTH") {
+      // Silent token refresh failed — likely PWA cookie jar or expired Google session.
+      // Don't treat as an error; surface the "tap to reconnect" state instead.
+      setDriveStatus("needsAuth");
+      render();
+      return;
+    }
+    // Surface token-related errors from Drive API calls (401) the same way.
+    const msg = e.message || String(e);
+    if(/401|unauthorized|invalid_token/i.test(msg)) {
+      clearCachedToken();
+      setDriveStatus("needsAuth");
+      render();
+      return;
+    }
     console.error("Drive sync failed:", e);
-    setDriveStatus("error", e.message || String(e));
+    setDriveStatus("error", msg);
   }
 }
 
@@ -648,7 +722,7 @@ function toast(msg) {
 function getStreak() {
   let c=0, d=new Date();
   for(let i=0;i<365;i++) {
-    const k = d.toISOString().split("T")[0];
+    const k = dateKey(d);
     const day = state.days[k];
     // Count if there's any activity that day
     if(day && (day.moments.length > 0 || day.morning.text || day.night.text || day.night.rating !== null)) {
@@ -740,10 +814,18 @@ function renderHeader() {
         h("span", {className:"badge badge-dim"}, dayCount+" days"),
         h("button", {
           className:"sync-dot sync-" + state.drive.status,
-          title: state.drive.signedIn
-            ? (state.drive.status === "synced" && state.drive.lastSyncAt ? "Synced " + new Date(state.drive.lastSyncAt).toLocaleTimeString() : state.drive.status)
-            : "Tap to set up Drive sync",
-          onClick: () => { state.view = "sync"; render(); }
+          title: state.drive.status === "needsAuth" ? "Tap to reconnect Drive"
+               : state.drive.signedIn
+                 ? (state.drive.status === "synced" && state.drive.lastSyncAt ? "Synced " + new Date(state.drive.lastSyncAt).toLocaleTimeString() : state.drive.status)
+                 : "Tap to set up Drive sync",
+          onClick: () => {
+            // One-tap reconnect when Drive session is stale — no tab bounce.
+            if(state.drive.status === "needsAuth") {
+              driveSignIn(false);
+              return;
+            }
+            state.view = "sync"; render();
+          }
         })
       )
     )
@@ -1980,7 +2062,7 @@ function maybeShowSundayPopup() {
     if(dismissed !== todayStr) {
       // summarize last month
       const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 15);
-      const lastMonthAnchor = lastMonth.toISOString().split("T")[0];
+      const lastMonthAnchor = dateKey(lastMonth);
       const monthDates = getMonthRange(lastMonthAnchor);
       let hasData = false;
       for(const d of monthDates) {
@@ -2183,6 +2265,24 @@ function renderSync(wrap) {
   if(!d.ready) {
     driveCard.appendChild(h("div", {style:{padding:"16px",textAlign:"center",color:"var(--text3)",fontSize:"13px"}},
       "Loading Google libraries…"));
+  } else if(d.status === "needsAuth") {
+    // Drive connection went stale (common on iOS PWA cookie jar expiry).
+    // Single tap reconnects — Google remembers the account, no password needed.
+    driveCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",lineHeight:"1.6",marginBottom:"14px"}},
+      "Your Drive connection expired. Tap below to reconnect — Google already knows your account, so this is one tap. Your local data is safe."
+    ));
+    driveCard.appendChild(h("button", {
+      className:"btn",
+      style:{background:"var(--orange)",color:"var(--bg)",fontWeight:"600",width:"100%",padding:"14px",marginBottom:"10px"},
+      onClick: () => driveSignIn(false)
+    }, "↻ Reconnect Drive"));
+    driveCard.appendChild(h("button", {
+      className:"btn btn-ghost",
+      style:{width:"100%",fontSize:"12px"},
+      onClick: () => {
+        if(confirm("Sign out completely? You'll need to pick your account on next sign-in.")) driveSignOut();
+      }
+    }, "Sign out instead"));
   } else if(!d.signedIn) {
     driveCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",lineHeight:"1.6",marginBottom:"14px"}},
       "Sign in once with your Google account. After that, every entry auto-saves to Drive within a few seconds. The app only sees files it creates — your other Drive files are private."
