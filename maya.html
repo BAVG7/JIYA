@@ -1,0 +1,2590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Maya">
+<meta name="theme-color" content="#0f0d0b">
+<title>Maya's Journal</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='40' fill='%230f0d0b'/><text x='90' y='120' font-size='100' text-anchor='middle' fill='%23c9a87c'>M</text></svg>">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Cormorant+Garamond:wght@600;700&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0d0b;--bg2:#13110f;--bg3:#1a1714;--border:#2a2520;--border2:#3a3530;
+  --gold:#c9a87c;--gold-dim:#c9a87c40;--text:#e8e4df;--text2:#8a8279;--text3:#665e54;--text4:#3a3530;
+  --green:#7ec87e;--red:#c87e7e;--blue:#7e9cc8;--purple:#8a7ec8;--orange:#e8a854;--teal:#7ec8b8;--yellow:#e8c854;--pink:#c87ea8;--brown:#b8926a;
+  --radius:14px;--radius-sm:10px;--radius-pill:20px;
+  --safe-top:env(safe-area-inset-top,20px);--safe-bot:env(safe-area-inset-bottom,20px);
+}
+html,body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;min-height:100dvh;overflow-x:hidden}
+body{padding-top:var(--safe-top);padding-bottom:calc(70px + var(--safe-bot))}
+input,textarea,button,select{font-family:inherit;font-size:inherit}
+input,textarea{width:100%;padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;transition:border-color .2s}
+input:focus,textarea:focus{border-color:var(--gold)}
+textarea{resize:vertical;min-height:60px;line-height:1.5}
+button{cursor:pointer;border:none;background:none;color:inherit}
+
+.header{position:sticky;top:0;z-index:100;background:var(--bg);border-bottom:1px solid var(--bg3);padding:12px 20px 0}
+.header-top{display:flex;justify-content:space-between;align-items:center;padding-bottom:10px}
+.logo{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold);font-weight:700;letter-spacing:.06em}
+.logo-sub{font-size:9px;color:var(--text3);letter-spacing:.18em;margin-top:1px;text-transform:uppercase}
+.badges{display:flex;gap:6px;flex-wrap:wrap}
+.badge{padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap}
+.badge-gold{background:rgba(201,168,124,.1);color:var(--gold)}
+.badge-dim{background:var(--bg3);color:var(--text3)}
+.sync-dot{width:10px;height:10px;border-radius:50%;border:none;padding:0;cursor:pointer;transition:all .2s;display:inline-block}
+.sync-dot.sync-idle{background:var(--text4)}
+.sync-dot.sync-syncing{background:var(--yellow);animation:pulse 1s infinite}
+.sync-dot.sync-synced{background:var(--green);box-shadow:0 0 6px rgba(126,200,126,.5)}
+.sync-dot.sync-error{background:var(--red);box-shadow:0 0 6px rgba(200,126,126,.5)}
+.sync-dot.sync-offline{background:var(--orange)}
+.sync-dot.sync-needsAuth{background:var(--orange);box-shadow:0 0 6px rgba(232,168,84,.5);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+.content{padding:20px;display:flex;flex-direction:column;gap:16px}
+
+.card{background:var(--bg2);border-radius:var(--radius);padding:20px;border:1px solid var(--border);animation:fadeUp .3s ease both}
+.card-title{display:flex;align-items:center;gap:8px;margin-bottom:14px;font-size:15px;font-weight:600;letter-spacing:.02em}
+.card-title .icon{font-size:18px}
+
+/* Quick Log FAB */
+.quick-capture{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+.quick-btn{padding:14px 6px;border-radius:var(--radius-sm);background:var(--bg3);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s;text-align:center}
+.quick-btn:active{transform:scale(.95);border-color:var(--gold)}
+.quick-btn-icon{font-size:22px}
+.quick-btn-label{font-size:10px;color:var(--text2);font-weight:600;letter-spacing:.04em}
+
+/* Moment entry modal */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn .2s ease}
+.modal{width:100%;max-width:480px;background:var(--bg);border-top-left-radius:24px;border-top-right-radius:24px;padding:20px;padding-bottom:calc(20px + var(--safe-bot));max-height:85vh;overflow-y:auto;animation:slideUp .25s ease}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.modal-title{font-size:17px;font-weight:600;display:flex;gap:8px;align-items:center}
+.modal-close{font-size:24px;color:var(--text3);width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+
+/* Moment feed */
+.moment{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px;animation:fadeUp .3s ease both;position:relative}
+.moment-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px}
+.moment-type{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;letter-spacing:.03em;text-transform:uppercase}
+.moment-time{font-size:11px;color:var(--text3);font-variant-numeric:tabular-nums}
+.moment-text{font-size:14px;line-height:1.55;color:var(--text);word-wrap:break-word;white-space:pre-wrap}
+.moment-cats{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px}
+.moment-cat-chip{padding:2px 8px;border-radius:10px;border:1px solid;font-size:10px;font-weight:600;letter-spacing:.02em;background:transparent}
+.moment-del{position:absolute;top:10px;right:10px;color:var(--text4);font-size:16px;width:24px;height:24px;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.moment-del:active{background:var(--bg3);color:var(--red)}
+
+/* Filter pills */
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin:0 -4px 4px;-webkit-overflow-scrolling:touch}
+.filter-row::-webkit-scrollbar{display:none}
+.filter-pill{padding:6px 12px;border-radius:var(--radius-pill);border:1px solid var(--border);background:var(--bg3);font-size:12px;color:var(--text2);white-space:nowrap;flex-shrink:0}
+.filter-pill.on{border-color:var(--gold);background:rgba(201,168,124,.09);color:var(--gold)}
+
+/* Rundown sections */
+.rundown-section{margin-bottom:16px}
+.rundown-label{font-size:12px;color:var(--text3);margin-bottom:8px;letter-spacing:.06em;text-transform:uppercase;font-weight:600}
+
+/* Pills */
+.pills{display:flex;gap:6px;flex-wrap:wrap}
+.pill{padding:8px 14px;border-radius:var(--radius-pill);border:1px solid var(--border);font-size:13px;color:var(--text2);background:var(--bg3);transition:all .2s;white-space:nowrap}
+.pill.on{border-color:var(--gold);background:rgba(201,168,124,.09);color:var(--gold)}
+
+/* Save indicator */
+.save-ind{position:fixed;top:calc(var(--safe-top) + 10px);right:20px;font-size:11px;color:var(--text3);opacity:0;transition:opacity .3s;z-index:50;background:var(--bg2);padding:4px 10px;border-radius:12px;border:1px solid var(--border)}
+.save-ind.show{opacity:1}
+
+/* Buttons */
+.btn{padding:14px 24px;border-radius:12px;font-size:15px;font-weight:600;width:100%;letter-spacing:.01em;transition:opacity .2s}
+.btn-gold{background:var(--gold);color:var(--bg)}
+.btn-dim{background:var(--border);color:var(--gold)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn:active{opacity:.8}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--bg3);display:flex;padding-bottom:var(--safe-bot);z-index:100}
+.nav-btn{flex:1;padding:10px 0 8px;text-align:center;font-size:10px;font-weight:600;color:var(--text3);transition:color .2s}
+.nav-btn.active{color:var(--gold)}
+.nav-icon{font-size:20px;display:block;margin-bottom:2px}
+
+/* Toast */
+.toast{position:fixed;top:calc(var(--safe-top) + 60px);left:50%;transform:translateX(-50%);background:var(--green);color:var(--bg);padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Stat box */
+.stat-row{display:flex;gap:8px;margin-top:12px}
+.stat{flex:1;padding:12px;background:var(--bg3);border-radius:var(--radius-sm);text-align:center}
+.stat-val{font-size:20px;font-weight:700;color:var(--gold)}
+.stat-label{font-size:10px;color:var(--text3);margin-top:2px;text-transform:uppercase;letter-spacing:.08em}
+
+/* Tabs */
+.tabs{display:flex;gap:0}
+.tab{flex:1;padding:10px 0;font-size:13px;font-weight:600;text-transform:capitalize;border-bottom:2px solid transparent;color:var(--text3);transition:all .2s}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+/* History */
+.hist-card{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:left;margin-bottom:10px}
+.hist-card:active{border-color:var(--text3)}
+.hist-summary{display:flex;gap:12px;font-size:11px;color:var(--text3);margin-top:8px;flex-wrap:wrap}
+.hist-summary span{display:flex;gap:3px;align-items:center}
+
+/* Goal */
+.goal{display:flex;gap:10px;align-items:flex-start;padding:8px 0}
+.goal-check{width:22px;height:22px;border-radius:6px;border:2px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;font-size:12px;transition:all .2s}
+.goal-check.done{border-color:var(--green);background:rgba(126,200,126,.12);color:var(--green)}
+.goal-text{flex:1;font-size:14px;line-height:1.5}
+.goal-text.done{color:var(--text3);text-decoration:line-through}
+.goal-rm{color:var(--text4);font-size:16px}
+
+/* Progress */
+.prog{margin-top:10px;font-size:12px;color:var(--text3)}
+.prog-bar{height:4px;background:var(--bg3);border-radius:4px;margin-top:6px;overflow:hidden}
+.prog-fill{height:100%;border-radius:4px;transition:width .3s}
+
+/* Onboarding / guide */
+.guide-box{background:linear-gradient(180deg,rgba(201,168,124,.08),rgba(201,168,124,.02));border:1px solid var(--gold-dim);border-radius:var(--radius);padding:16px;font-size:13px;line-height:1.6;color:var(--text2)}
+.guide-box strong{color:var(--gold)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div id="app"></div>
+
+<script>
+// ─── Per-user config (change this block for each instance) ───
+const CONFIG = {
+  userName: "Maya",
+  driveFolderId: "1MDj5Hy0yQMAcloQqztAifFdn0B7uI6T4",
+  feedbackFolderId: "1NC8UKo1QYXgYeRM9dkY41SIP276S603g",
+  clientId: "704893313229-pj27ucfuf82r0hvdj0bue8hf4ler3sr0.apps.googleusercontent.com",
+  appTitle: "Maya's Journal",
+};
+
+// ─── Moment types ───
+const MOMENT_TYPES = [
+  {id:"win",      icon:"🏆", label:"Win",      color:"var(--green)"},
+  {id:"loss",     icon:"❌", label:"Loss",     color:"var(--red)"},
+  {id:"struggle", icon:"🧱", label:"Struggle", color:"var(--brown)"},
+  {id:"rant",     icon:"💨", label:"Rant",     color:"var(--orange)"},
+  {id:"thought",  icon:"💭", label:"Thought",  color:"var(--blue)"},
+  {id:"gratitude",icon:"🙏", label:"Gratitude",color:"var(--teal)"},
+];
+
+const MOODS = [{e:"🔥",l:"On Fire"},{e:"😊",l:"Good"},{e:"😐",l:"Neutral"},{e:"😔",l:"Rough"},{e:"💀",l:"Terrible"}];
+const ENERGY = ["Drained","Low","Moderate","High","Limitless"];
+const SLEEP = ["Awful","Poor","OK","Good","Amazing"];
+const PROD = ["Nothing Done","Barely","Some Progress","Solid","Crushed It"];
+
+// ─── Categories (6 core + user customs). Every moment must have at least one. ───
+const CORE_CATEGORIES = [
+  {id:"health",       label:"Health",          desc:"Workouts, sleep, food, meal prep, doctor, hydration, recovery", color:"var(--green)"},
+  {id:"finance",      label:"Finance",         desc:"Spending, saving, investing, deals, budgeting, purchases",       color:"var(--yellow)"},
+  {id:"career",       label:"Career",          desc:"Work output, projects shipped, skills built, side hustles",      color:"var(--blue)"},
+  {id:"relationships",label:"Relationships",   desc:"Spouse, family, friends, meaningful conversations",              color:"var(--pink)"},
+  {id:"growth",       label:"Personal Growth", desc:"Learning, reading, reflection, habits, mindset, new skills",     color:"var(--purple)"},
+  {id:"mental",       label:"Mental/Emotional",desc:"Mood, stress, therapy, meditation, processing hard stuff",       color:"var(--teal)"},
+];
+function getAllCategories() {
+  const customs = (DB.get("customCats").list || []).map(c => ({...c, custom:true}));
+  return [...CORE_CATEGORIES, ...customs];
+}
+function getCategoryById(id) { return getAllCategories().find(c => c.id === id); }
+// Legacy CATS (still used by morning "areas focused on" — keep working)
+const CATS = ["Work/Career","Health/Fitness","Relationships","Finances","Learning/Growth","Side Projects","Mental Health","Creative","Life Admin"];
+
+// Local-timezone date key (YYYY-MM-DD). Uses local time components so "today"
+// reflects the user's wall clock, not UTC — fixes the bug where logging after
+// 8pm EDT / 7pm EST rolled entries to the next day.
+const dateKey = d => {
+  d = d || new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+};
+const today = () => dateKey();
+const nowISO = () => new Date().toISOString();
+const weekOf = d => { const x=new Date(d+"T12:00:00"); x.setDate(x.getDate()-x.getDay()); return x.toISOString().split("T")[0]; };
+const monthOf = d => d.slice(0,7);
+const fmtS = d => new Date(d+"T12:00:00").toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+const fmtF = d => new Date(d+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+const fmtM = d => new Date(d+"-15").toLocaleDateString("en-US",{month:"long",year:"numeric"});
+const fmtTime = iso => new Date(iso).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});
+
+// Day data schema V2
+const blankDay = d => ({
+  date: d||today(),
+  createdAt: nowISO(),
+  lastModified: nowISO(),
+  morning: {
+    text:"", loggedAt:null, mood:null, energy:null, sleep:null, plannedCategories:[],
+    intent:"",           // "the quality of day I'm aiming for"
+    scheduleLoad:null,   // 0=light, 1=normal, 2=heavy
+    stressor:"",         // one-line anticipated stress
+    anticipation:"",     // one-line thing to look forward to
+  },
+  moments: [], // {id, type, text, at, categories: [], where: null|string, withWhom: null|string}
+  night: {
+    text:"", loggedAt:null, rating:null, ratingWhy:"", productivity:null, lessons:"", tomorrowIntent:"", endMood:null, endEnergy:null,
+    intentMatch:null,    // self-assessed 0-4 (1..5 "did today match intent?")
+    intentMatchWhy:"",   // optional reflection
+  },
+});
+
+// ─── Where / Who With options (for moments) ───
+const WHERE_OPTIONS = [
+  {id:"home",   label:"Home",   icon:"🏠"},
+  {id:"work",   label:"Work",   icon:"💼"},
+  {id:"out",    label:"Out",    icon:"🚗"},
+  {id:"travel", label:"Travel", icon:"✈️"},
+  {id:"other",  label:"Other",  icon:"📍"},
+];
+const WITH_OPTIONS = [
+  {id:"alone",     label:"Alone",       icon:"🧍"},
+  {id:"spouse",    label:"Spouse",      icon:"💑"},
+  {id:"family",    label:"Family",      icon:"👨‍👩‍👧"},
+  {id:"friends",   label:"Friends",     icon:"👥"},
+  {id:"coworkers", label:"Coworkers",   icon:"🧑‍💻"},
+  {id:"strangers", label:"Strangers",   icon:"🌐"},
+];
+
+// Storage — namespaced per user so Jimmy's and Maya's instances on the same
+// device can't overwrite each other.
+const STORAGE_PREFIX = CONFIG.userName.toLowerCase() + "-";
+const DB = {
+  get(k) { try { return JSON.parse(localStorage.getItem(STORAGE_PREFIX+k)) || {}; } catch { return {}; } },
+  set(k,v) { localStorage.setItem(STORAGE_PREFIX+k, JSON.stringify(v)); },
+};
+
+// ─── Migrate V1 → V2 if needed ───
+// Skipped for Maya's instance — she has no legacy data. Migration only ran once
+// on Jimmy's original `jiya-entries` key and isn't relevant here.
+(function migrate(){
+  // Intentionally empty for Maya's instance.
+})();
+
+let state = {
+  view: "today",           // today | history | summary | goals | sync
+  dayDate: today(),
+  days: DB.get("days"),
+  dG: DB.get("daily"),     // {YYYY-MM-DD: [{id,text,done,killed,firstSeen,at}]}
+  wG: DB.get("weekly"),
+  mG: DB.get("monthly"),
+  day: null,
+  filter: "all",           // moment filter
+  modal: null,
+  modalDraft: "",
+  newGoal: "",
+  newGoalScope: "daily",   // daily | weekly | monthly (Goals tab composer)
+  toast: "",
+  saveInd: false,
+  saveIndTimer: null,
+  // Nightly rundown step state
+  nightStep: 0,
+  // ─── Feedback composer state ───
+  feedbackDraft: "",
+  feedbackTags: [],
+  feedbackSending: false,
+  // ─── Drive sync state ───
+  drive: {
+    ready: false,        // gapi + GIS both loaded
+    signedIn: false,
+    tokenClient: null,   // GIS token client
+    accessToken: null,   // current bearer token (cached in localStorage)
+    tokenExpiresAt: 0,   // ms timestamp
+    status: "idle",      // idle | syncing | synced | error | offline | needsAuth
+    lastSyncAt: null,    // ISO timestamp
+    lastError: null,
+    syncTimer: null,     // debounce timer
+    userEmail: null,
+    silentAttempted: false, // have we tried silent refresh this session?
+  },
+};
+
+function initDay() {
+  if(!state.days[state.dayDate]) {
+    state.days[state.dayDate] = blankDay(state.dayDate);
+  }
+  state.day = state.days[state.dayDate];
+  if(!state.day.morning) state.day.morning = blankDay().morning;
+  if(!state.day.night) state.day.night = blankDay().night;
+  if(!Array.isArray(state.day.moments)) state.day.moments = [];
+  // Ensure end-of-day fields exist
+  if(state.day.night.endMood === undefined) state.day.night.endMood = null;
+  if(state.day.night.endEnergy === undefined) state.day.night.endEnergy = null;
+  // v7 fields
+  if(state.day.morning.intent === undefined) state.day.morning.intent = "";
+  if(state.day.morning.scheduleLoad === undefined) state.day.morning.scheduleLoad = null;
+  if(state.day.morning.stressor === undefined) state.day.morning.stressor = "";
+  if(state.day.morning.anticipation === undefined) state.day.morning.anticipation = "";
+  if(state.day.night.intentMatch === undefined) state.day.night.intentMatch = null;
+  if(state.day.night.intentMatchWhy === undefined) state.day.night.intentMatchWhy = "";
+}
+initDay();
+
+// ─── Daily-goals rollover ───
+// On every app load, any prior daily goals that aren't done and aren't killed roll to today.
+// `firstSeen` is preserved so the streak counter can compute "Day N".
+function rolloverDailyGoals() {
+  const todayStr = today();
+  if(!state.dG[todayStr]) state.dG[todayStr] = [];
+  const todayList = state.dG[todayStr];
+  const todayIds = new Set(todayList.map(g => g.id));
+  // Walk all past daily-goal dates. If any unfinished + not killed, pull into today.
+  const dates = Object.keys(state.dG).filter(d => d < todayStr).sort();
+  let movedAny = false;
+  dates.forEach(date => {
+    const list = state.dG[date] || [];
+    list.forEach(g => {
+      if(!g.done && !g.killed && !todayIds.has(g.id)) {
+        todayList.push({...g}); // preserves firstSeen
+        todayIds.add(g.id);
+        movedAny = true;
+      }
+    });
+  });
+  if(movedAny) DB.set("daily", state.dG);
+}
+rolloverDailyGoals();
+
+function dailyGoalStreak(goal) {
+  // Returns N where today minus firstSeen + 1 = N (clamped >= 1)
+  if(!goal.firstSeen) return 1;
+  const start = new Date(goal.firstSeen + "T12:00:00");
+  const now = new Date(today() + "T12:00:00");
+  const diff = Math.round((now - start) / (1000*60*60*24));
+  return Math.max(1, diff + 1);
+}
+
+function save() {
+  state.day.lastModified = nowISO();
+  DB.set("days", state.days);
+  showSaveInd();
+  scheduleDriveSync();
+}
+function saveGoals() {
+  DB.set("daily", state.dG);
+  DB.set("weekly", state.wG);
+  DB.set("monthly", state.mG);
+  showSaveInd();
+  scheduleDriveSync(); // also push goal changes
+}
+
+// ─── DRIVE SYNC ───
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file";
+const DRIVE_API = "https://www.googleapis.com/drive/v3";
+const DRIVE_UPLOAD = "https://www.googleapis.com/upload/drive/v3";
+
+function setDriveStatus(status, error) {
+  state.drive.status = status;
+  state.drive.lastError = error || null;
+  if(status === "synced") state.drive.lastSyncAt = nowISO();
+  // Update header indicator without full re-render if possible
+  const ind = document.querySelector(".sync-dot");
+  if(ind) {
+    ind.className = "sync-dot sync-" + status;
+    ind.title = status === "synced" ? "Synced " + new Date(state.drive.lastSyncAt).toLocaleTimeString() :
+                status === "syncing" ? "Syncing…" :
+                status === "error" ? ("Sync error: " + (error||"unknown")) :
+                status === "offline" ? "Offline — changes saved locally" :
+                status === "needsAuth" ? "Tap to reconnect Drive" :
+                "Not signed in to Drive";
+  }
+}
+
+function driveInit() {
+  // Wait until both libraries loaded
+  if(typeof google === "undefined" || !google.accounts || !google.accounts.oauth2 || typeof gapi === "undefined") {
+    setTimeout(driveInit, 200);
+    return;
+  }
+  gapi.load("client", async () => {
+    try {
+      await gapi.client.init({});
+      await gapi.client.load("https://www.googleapis.com/discovery/v1/apis/drive/v3/rest");
+      state.drive.tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CONFIG.clientId,
+        scope: DRIVE_SCOPE,
+        prompt: "",
+        callback: (response) => {
+          if(response.error) {
+            // Silent refresh failed (e.g. PWA cookie jar stale). Don't error-nag
+            // the user — flip to needsAuth so they can one-tap reconnect.
+            clearCachedToken();
+            state.drive.signedIn = false;
+            setDriveStatus("needsAuth", response.error);
+            render();
+            return;
+          }
+          const expiresAt = Date.now() + (response.expires_in * 1000) - 60000; // refresh 1 min early
+          state.drive.accessToken = response.access_token;
+          state.drive.tokenExpiresAt = expiresAt;
+          state.drive.signedIn = true;
+          DB.set("driveSignedIn", {flag: true});
+          // Persist the token so the next cold launch within ~55 min needs zero auth round-trip.
+          DB.set("driveToken", {
+            accessToken: response.access_token,
+            expiresAt: expiresAt,
+          });
+          gapi.client.setToken({access_token: response.access_token});
+          setDriveStatus("synced");
+          fetchUserEmail();
+          render();
+          // Initial sync after sign-in
+          scheduleDriveSync(0);
+        },
+      });
+      state.drive.ready = true;
+
+      // ─── Layer 1: restore cached token from last session ───
+      const cached = DB.get("driveToken");
+      if(cached.accessToken && cached.expiresAt && Date.now() < cached.expiresAt) {
+        // Cached token is still valid — use it directly, no Google round-trip.
+        state.drive.accessToken = cached.accessToken;
+        state.drive.tokenExpiresAt = cached.expiresAt;
+        state.drive.signedIn = true;
+        gapi.client.setToken({access_token: cached.accessToken});
+        setDriveStatus("synced");
+        fetchUserEmail();
+        render();
+        // Opportunistic sync on boot (any pending local changes)
+        scheduleDriveSync(500);
+        return;
+      }
+
+      // No valid cached token. If user was previously signed in, try ONE silent refresh.
+      // If it fails (common in PWA mode), we flip to needsAuth rather than nagging.
+      const wasSignedIn = DB.get("driveSignedIn").flag;
+      if(wasSignedIn) {
+        state.drive.signedIn = true; // optimistic — callback will correct if silent fails
+        state.drive.silentAttempted = true;
+        setDriveStatus("syncing"); // briefly show we're trying
+        state.drive.tokenClient.requestAccessToken({prompt: ""});
+      } else {
+        render();
+      }
+    } catch(e) {
+      setDriveStatus("error", "Failed to load Drive API: " + e.message);
+    }
+  });
+}
+
+function clearCachedToken() {
+  state.drive.accessToken = null;
+  state.drive.tokenExpiresAt = 0;
+  DB.set("driveToken", {});
+}
+
+function driveSignIn(silent) {
+  if(!state.drive.tokenClient) {
+    setDriveStatus("error", "Drive not initialized");
+    return;
+  }
+  state.drive.tokenClient.requestAccessToken({prompt: silent ? "" : "consent"});
+}
+
+function driveSignOut() {
+  if(state.drive.accessToken && google?.accounts?.oauth2) {
+    google.accounts.oauth2.revoke(state.drive.accessToken, () => {});
+  }
+  clearCachedToken();
+  state.drive.signedIn = false;
+  state.drive.userEmail = null;
+  state.drive.silentAttempted = false;
+  DB.set("driveSignedIn", {flag: false});
+  setDriveStatus("idle");
+  render();
+}
+
+async function fetchUserEmail() {
+  try {
+    const res = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: {Authorization: "Bearer " + state.drive.accessToken}
+    });
+    if(res.ok) {
+      const data = await res.json();
+      state.drive.userEmail = data.email;
+      render();
+    }
+  } catch(e) { /* non-fatal */ }
+}
+
+function ensureFreshToken() {
+  return new Promise((resolve, reject) => {
+    if(state.drive.accessToken && Date.now() < state.drive.tokenExpiresAt) {
+      resolve();
+      return;
+    }
+    if(!state.drive.tokenClient) {
+      reject(new Error("Not initialized"));
+      return;
+    }
+    // Token is stale. Try ONE silent refresh. If it fails, surface needsAuth
+    // and reject cleanly so the caller can route to a friendly UI state.
+    const oldCallback = state.drive.tokenClient.callback;
+    state.drive.tokenClient.callback = (response) => {
+      state.drive.tokenClient.callback = oldCallback;
+      if(response.error) {
+        clearCachedToken();
+        reject(new Error("NEEDS_AUTH"));
+        return;
+      }
+      const expiresAt = Date.now() + (response.expires_in * 1000) - 60000;
+      state.drive.accessToken = response.access_token;
+      state.drive.tokenExpiresAt = expiresAt;
+      DB.set("driveToken", {
+        accessToken: response.access_token,
+        expiresAt: expiresAt,
+      });
+      gapi.client.setToken({access_token: response.access_token});
+      resolve();
+    };
+    state.drive.tokenClient.requestAccessToken({prompt: ""});
+  });
+}
+
+async function driveFindFile(name) {
+  // Search inside our folder by exact name
+  const q = `name='${name.replace(/'/g, "\\'")}' and '${CONFIG.driveFolderId}' in parents and trashed=false`;
+  const res = await gapi.client.drive.files.list({
+    q,
+    fields: "files(id, name, modifiedTime)",
+    pageSize: 1,
+  });
+  return res.result.files && res.result.files[0] || null;
+}
+
+async function driveUpload(name, content, existingId) {
+  const metadata = {
+    name,
+    mimeType: "application/json",
+  };
+  if(!existingId) metadata.parents = [CONFIG.driveFolderId];
+
+  const boundary = "-------jiya" + Date.now();
+  const delim = "\r\n--" + boundary + "\r\n";
+  const close = "\r\n--" + boundary + "--";
+  const body =
+    delim + "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+    JSON.stringify(metadata) +
+    delim + "Content-Type: application/json\r\n\r\n" +
+    content + close;
+
+  const url = existingId
+    ? `${DRIVE_UPLOAD}/files/${existingId}?uploadType=multipart`
+    : `${DRIVE_UPLOAD}/files?uploadType=multipart`;
+
+  const res = await fetch(url, {
+    method: existingId ? "PATCH" : "POST",
+    headers: {
+      Authorization: "Bearer " + state.drive.accessToken,
+      "Content-Type": "multipart/related; boundary=" + boundary,
+    },
+    body,
+  });
+  if(!res.ok) {
+    const text = await res.text();
+    throw new Error("Drive upload " + res.status + ": " + text);
+  }
+  return res.json();
+}
+
+function buildSyncPayload() {
+  return JSON.stringify({
+    version: "2.2",
+    schema: "continuous-capture",
+    user: CONFIG.userName,
+    exportedAt: nowISO(),
+    days: state.days,
+    dailyGoals: state.dG,
+    weeklyGoals: state.wG,
+    monthlyGoals: state.mG,
+    meta: {
+      totalDays: Object.keys(state.days).length,
+      totalMoments: Object.values(state.days).reduce((s,d)=>s+(d.moments?.length||0),0),
+      dateRange: {
+        first: Object.keys(state.days).sort()[0] || null,
+        last: Object.keys(state.days).sort().pop() || null,
+      },
+    },
+  }, null, 2);
+}
+
+async function performDriveSync() {
+  if(!state.drive.signedIn) return;
+  if(!navigator.onLine) { setDriveStatus("offline"); return; }
+  setDriveStatus("syncing");
+  try {
+    await ensureFreshToken();
+    const payload = buildSyncPayload();
+    const dailyName = `maya-journal-${today()}.json`;
+    const latestName = `maya-journal-latest.json`;
+    const [dailyExisting, latestExisting] = await Promise.all([
+      driveFindFile(dailyName),
+      driveFindFile(latestName),
+    ]);
+    await Promise.all([
+      driveUpload(dailyName, payload, dailyExisting?.id),
+      driveUpload(latestName, payload, latestExisting?.id),
+    ]);
+    setDriveStatus("synced");
+  } catch(e) {
+    if(e.message === "NEEDS_AUTH") {
+      // Silent token refresh failed — likely PWA cookie jar or expired Google session.
+      // Don't treat as an error; surface the "tap to reconnect" state instead.
+      setDriveStatus("needsAuth");
+      render();
+      return;
+    }
+    // Surface token-related errors from Drive API calls (401) the same way.
+    const msg = e.message || String(e);
+    if(/401|unauthorized|invalid_token/i.test(msg)) {
+      clearCachedToken();
+      setDriveStatus("needsAuth");
+      render();
+      return;
+    }
+    console.error("Drive sync failed:", e);
+    setDriveStatus("error", msg);
+  }
+}
+
+function scheduleDriveSync(delayMs) {
+  if(!state.drive.signedIn) return;
+  if(state.drive.syncTimer) clearTimeout(state.drive.syncTimer);
+  const delay = delayMs === undefined ? 2500 : delayMs;
+  state.drive.syncTimer = setTimeout(performDriveSync, delay);
+}
+
+// Online/offline awareness
+window.addEventListener("online", () => {
+  if(state.drive.signedIn) scheduleDriveSync(500);
+});
+window.addEventListener("offline", () => {
+  if(state.drive.signedIn) setDriveStatus("offline");
+});
+
+
+function showSaveInd() {
+  state.saveInd = true;
+  clearTimeout(state.saveIndTimer);
+  const el = document.querySelector(".save-ind");
+  if(el) el.classList.add("show");
+  state.saveIndTimer = setTimeout(() => {
+    state.saveInd = false;
+    const el2 = document.querySelector(".save-ind");
+    if(el2) el2.classList.remove("show");
+  }, 1200);
+}
+
+function toast(msg) {
+  state.toast = msg;
+  const el = document.querySelector(".toast");
+  if(el) { el.textContent = msg; el.classList.add("show"); }
+  setTimeout(() => {
+    state.toast = "";
+    const el2 = document.querySelector(".toast");
+    if(el2) el2.classList.remove("show");
+  }, 2000);
+}
+
+function getStreak() {
+  let c=0, d=new Date();
+  for(let i=0;i<365;i++) {
+    const k = dateKey(d);
+    const day = state.days[k];
+    // Count if there's any activity that day
+    if(day && (day.moments.length > 0 || day.morning.text || day.night.text || day.night.rating !== null)) {
+      c++; d.setDate(d.getDate()-1);
+    } else break;
+  }
+  return c;
+}
+
+// ─── DOM helper ───
+function h(tag, attrs, ...children) {
+  const el = document.createElement(tag);
+  if(attrs) Object.entries(attrs).forEach(([k,v]) => {
+    if(v === null || v === undefined) return;
+    if(k === "style" && typeof v === "object") Object.assign(el.style, v);
+    else if(k.startsWith("on")) el.addEventListener(k.slice(2).toLowerCase(), v);
+    else if(k === "className") el.className = v;
+    else if(k === "value") el.value = v;
+    else el.setAttribute(k, v);
+  });
+  children.flat(Infinity).forEach(c => {
+    if(c == null || c === false) return;
+    el.appendChild(typeof c === "string" || typeof c === "number" ? document.createTextNode(c) : c);
+  });
+  return el;
+}
+
+// Auto-save textarea helper
+function autoTextarea(getVal, setVal, placeholder, rows) {
+  const ta = h("textarea", {placeholder, rows: rows||3});
+  ta.value = getVal() || "";
+  let timer;
+  ta.addEventListener("input", e => {
+    setVal(e.target.value);
+    clearTimeout(timer);
+    timer = setTimeout(() => save(), 300);
+  });
+  return ta;
+}
+
+// Auto-save input
+function autoInput(getVal, setVal, placeholder) {
+  const inp = h("input", {placeholder});
+  inp.value = getVal() || "";
+  let timer;
+  inp.addEventListener("input", e => {
+    setVal(e.target.value);
+    clearTimeout(timer);
+    timer = setTimeout(() => save(), 300);
+  });
+  return inp;
+}
+
+// ─── Render engine ───
+function render() {
+  const app = document.getElementById("app");
+  app.innerHTML = "";
+  app.appendChild(renderSaveInd());
+  app.appendChild(renderHeader());
+  app.appendChild(renderContent());
+  app.appendChild(renderNav());
+  if(state.modal) app.appendChild(renderModal());
+  // Toast
+  if(!document.querySelector(".toast")) {
+    document.body.appendChild(h("div", {className:"toast"}, ""));
+  }
+}
+
+function renderSaveInd() {
+  return h("div", {className:"save-ind" + (state.saveInd?" show":"")}, "✓ saved");
+}
+
+function renderHeader() {
+  const streak = getStreak();
+  const dayCount = Object.keys(state.days).filter(d => {
+    const day = state.days[d];
+    return day && (day.moments.length > 0 || day.morning.text || day.night.text);
+  }).length;
+  const todayMoments = (state.day.moments || []).length;
+  return h("div", {className:"header"},
+    h("div", {className:"header-top"},
+      h("div", null,
+        h("div", {className:"logo"}, "MAYA"),
+        h("div", {className:"logo-sub"}, "Journal · Continuous Capture")
+      ),
+      h("div", {className:"badges"},
+        streak > 0 ? h("span", {className:"badge badge-gold"}, "🔥 "+streak+"d") : null,
+        todayMoments > 0 ? h("span", {className:"badge badge-gold"}, todayMoments+" today") : null,
+        h("span", {className:"badge badge-dim"}, dayCount+" days"),
+        h("button", {
+          className:"sync-dot sync-" + state.drive.status,
+          title: state.drive.status === "needsAuth" ? "Tap to reconnect Drive"
+               : state.drive.signedIn
+                 ? (state.drive.status === "synced" && state.drive.lastSyncAt ? "Synced " + new Date(state.drive.lastSyncAt).toLocaleTimeString() : state.drive.status)
+                 : "Tap to set up Drive sync",
+          onClick: () => {
+            // One-tap reconnect when Drive session is stale — no tab bounce.
+            if(state.drive.status === "needsAuth") {
+              driveSignIn(false);
+              return;
+            }
+            state.view = "settings"; render();
+          }
+        })
+      )
+    )
+  );
+}
+
+function renderNav() {
+  const items = [
+    {id:"today",    icon:"☀️", label:"Today"},
+    {id:"history",  icon:"📊", label:"History"},
+    {id:"summary",  icon:"📅", label:"Summary"},
+    {id:"goals",    icon:"🎯", label:"Goals"},
+    {id:"settings", icon:"⚙️", label:"Settings"},
+  ];
+  return h("div", {className:"bottom-nav"},
+    ...items.map(it => h("button", {
+      className:"nav-btn"+(state.view===it.id?" active":""),
+      onClick:()=>{ state.view=it.id; if(it.id==="today"){state.dayDate=today();initDay();} render(); }
+    }, h("span",{className:"nav-icon"},it.icon), it.label))
+  );
+}
+
+function renderContent() {
+  const wrap = h("div", {className:"content"});
+  if(state.view === "today") renderToday(wrap);
+  else if(state.view === "history") renderHistory(wrap);
+  else if(state.view === "summary") renderSummary(wrap);
+  else if(state.view === "goals") renderGoals(wrap);
+  else if(state.view === "settings" || state.view === "sync" || state.view === "feedback") renderSettings(wrap);
+  return wrap;
+}
+
+// ─── TODAY VIEW ───
+function renderToday(wrap) {
+  const d = state.day;
+  const isToday = state.dayDate === today();
+
+  // Date header
+  const dateEl = h("div", {style:{textAlign:"center",padding:"6px 0 4px"}},
+    h("div", {style:{fontSize:"15px",fontWeight:"600"}}, fmtF(state.dayDate))
+  );
+  if(!isToday) {
+    dateEl.appendChild(h("button", {style:{background:"none",border:"none",color:"var(--gold)",fontSize:"12px",marginTop:"4px"}, onClick:()=>{state.dayDate=today();initDay();render();}}, "← Jump to Today"));
+  }
+  wrap.appendChild(dateEl);
+
+  // Morning Rundown card
+  const morningDone = d.morning.text || d.morning.mood !== null || d.morning.energy !== null;
+  const morningCard = h("div", {className:"card"});
+  morningCard.appendChild(h("div", {className:"card-title", style:{color:"var(--orange)"}},
+    h("span", {className:"icon"}, "🌅"), "Morning Rundown",
+    morningDone ? h("span", {style:{marginLeft:"auto",fontSize:"11px",color:"var(--text3)"}}, d.morning.loggedAt ? fmtTime(d.morning.loggedAt) : "") : null
+  ));
+  if(morningDone) {
+    morningCard.appendChild(renderMorningContent());
+  } else {
+    morningCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",marginBottom:"12px",lineHeight:"1.5"}},
+      "Start your day with intent. What do you want to do? How are you feeling?"));
+    morningCard.appendChild(h("button", {className:"btn btn-gold", onClick:()=>openModal({type:"morning"})}, "🌅 Start Morning Rundown"));
+  }
+  wrap.appendChild(morningCard);
+
+  // Quick capture
+  const captureCard = h("div", {className:"card"});
+  captureCard.appendChild(h("div", {className:"card-title", style:{color:"var(--gold)"}},
+    h("span", {className:"icon"}, "⚡"), "Quick Log",
+    h("span", {style:{marginLeft:"auto",fontSize:"11px",color:"var(--text3)"}}, "tap to capture")
+  ));
+  captureCard.appendChild(h("div", {className:"quick-capture"},
+    ...MOMENT_TYPES.map(t => h("button", {
+      className:"quick-btn",
+      onClick:()=>openModal({type:"moment", momentType:t.id})
+    },
+      h("span", {className:"quick-btn-icon"}, t.icon),
+      h("span", {className:"quick-btn-label", style:{color:t.color}}, t.label)
+    ))
+  ));
+  wrap.appendChild(captureCard);
+
+  // Moments Feed
+  const momentsCard = h("div", {className:"card"});
+  momentsCard.appendChild(h("div", {className:"card-title"},
+    h("span", {className:"icon"}, "📜"), "Today's Moments",
+    h("span", {style:{marginLeft:"auto",fontSize:"12px",color:"var(--text3)"}}, d.moments.length+" total")
+  ));
+  // Filter row
+  const filters = [{id:"all",label:"All"}, ...MOMENT_TYPES.map(t=>({id:t.id,label:t.icon+" "+t.label}))];
+  momentsCard.appendChild(h("div", {className:"filter-row"},
+    ...filters.map(f => h("button", {
+      className:"filter-pill"+(state.filter===f.id?" on":""),
+      onClick:()=>{state.filter=f.id;render();}
+    }, f.label))
+  ));
+  // Moments list
+  const filtered = state.filter==="all" ? d.moments : d.moments.filter(m => m.type === state.filter);
+  const sorted = [...filtered].sort((a,b) => new Date(b.at) - new Date(a.at));
+  if(!sorted.length) {
+    momentsCard.appendChild(h("div", {style:{padding:"24px 8px",textAlign:"center",color:"var(--text4)",fontSize:"13px"}},
+      d.moments.length === 0 ? "No moments yet today — tap any quick log button above to capture one." : "No moments match this filter."));
+  } else {
+    sorted.forEach(m => momentsCard.appendChild(renderMoment(m)));
+  }
+  wrap.appendChild(momentsCard);
+
+  // ─── Quiet this week nudge ───
+  const weekStats = buildWeekStats(getWeekRange(today()));
+  if(weekStats.totalMoments > 0) {
+    const cats = getAllCategories();
+    const quiet = cats.filter(c => (weekStats.catCounts[c.id]||0) === 0);
+    const active = cats.filter(c => (weekStats.catCounts[c.id]||0) > 0);
+    const nudgeCard = h("div", {className:"card", style:{padding:"14px 18px"}});
+    if(quiet.length === 0) {
+      nudgeCard.appendChild(h("div", {style:{display:"flex",alignItems:"center",gap:"10px"}},
+        h("span", {style:{fontSize:"18px"}}, "✨"),
+        h("div", {style:{fontSize:"12px",color:"var(--text2)",lineHeight:"1.5"}},
+          h("strong", {style:{color:"var(--gold)"}}, "All categories logged this week."),
+          " Nice balance.")
+      ));
+    } else if(quiet.length === cats.length) {
+      // shouldn't happen since totalMoments > 0, but safety
+      nudgeCard.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text2)"}}, "Start logging to see your week shape."));
+    } else {
+      nudgeCard.appendChild(h("div", {style:{display:"flex",alignItems:"flex-start",gap:"10px"}},
+        h("span", {style:{fontSize:"16px",marginTop:"1px"}}, "💡"),
+        h("div", {style:{fontSize:"12px",color:"var(--text2)",lineHeight:"1.55",flex:"1"}},
+          h("span", {style:{color:"var(--text3)",letterSpacing:".06em",textTransform:"uppercase",fontSize:"10px",fontWeight:"600",display:"block",marginBottom:"4px"}}, "This week"),
+          h("span", null,
+            h("span", {style:{color:"var(--green)"}}, "Active: "),
+            active.map(c=>c.label).join(", "),
+            h("br"),
+            h("span", {style:{color:"var(--text3)"}}, "Quiet: "),
+            quiet.map(c=>c.label).join(", ")
+          )
+        )
+      ));
+    }
+    wrap.appendChild(nudgeCard);
+  }
+
+  // Night Rundown
+  const nightDone = d.night.text || d.night.rating !== null;
+  const nightCard = h("div", {className:"card"});
+  nightCard.appendChild(h("div", {className:"card-title", style:{color:"var(--purple)"}},
+    h("span", {className:"icon"}, "🌙"), "Nightly Rundown",
+    nightDone ? h("span", {style:{marginLeft:"auto",fontSize:"11px",color:"var(--text3)"}}, d.night.loggedAt ? fmtTime(d.night.loggedAt) : "") : null
+  ));
+  if(nightDone) {
+    nightCard.appendChild(renderNightContent());
+  } else {
+    nightCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",marginBottom:"12px",lineHeight:"1.5"}},
+      "Wrap the day. Your "+d.moments.length+" moment"+(d.moments.length!==1?"s":"")+" "+(d.moments.length?"will be waiting for you to reflect on":"are ready whenever you are")+"."));
+    nightCard.appendChild(h("button", {className:"btn btn-gold", style:{background:"var(--purple)"}, onClick:()=>openModal({type:"night"})}, "🌙 Start Nightly Rundown"));
+  }
+  wrap.appendChild(nightCard);
+}
+
+function renderMorningContent() {
+  const m = state.day.morning;
+  const wrap = h("div");
+  if(m.text) wrap.appendChild(h("div", {style:{fontSize:"14px",lineHeight:"1.6",color:"var(--text)",whiteSpace:"pre-wrap",marginBottom:"12px"}}, m.text));
+  const meta = [];
+  if(m.mood !== null) meta.push(MOODS[m.mood].e+" "+MOODS[m.mood].l);
+  if(m.energy !== null) meta.push("⚡ "+ENERGY[m.energy]);
+  if(m.sleep !== null) meta.push("🌙 "+SLEEP[m.sleep]);
+  if(meta.length) wrap.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text3)",marginBottom:"8px"}}, meta.join(" · ")));
+  if(m.plannedCategories && m.plannedCategories.length) {
+    wrap.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text3)",marginBottom:"12px"}}, "Focus: "+m.plannedCategories.join(", ")));
+  }
+  wrap.appendChild(h("button", {className:"btn btn-ghost", style:{padding:"8px",fontSize:"13px"}, onClick:()=>openModal({type:"morning"})}, "Edit Morning Rundown"));
+  return wrap;
+}
+
+function renderNightContent() {
+  const n = state.day.night;
+  const wrap = h("div");
+  if(n.rating !== null) {
+    wrap.appendChild(h("div", {style:{display:"flex",gap:"8px",alignItems:"center",marginBottom:"10px"}},
+      h("span", {style:{background:"rgba(201,168,124,.15)",color:"var(--gold)",padding:"4px 12px",borderRadius:"12px",fontSize:"14px",fontWeight:"600"}}, (n.rating+1)+"/10"),
+      n.productivity !== null ? h("span", {style:{fontSize:"12px",color:"var(--text3)"}}, "· "+PROD[n.productivity]) : null
+    ));
+  }
+  if(n.ratingWhy) wrap.appendChild(h("div", {style:{fontSize:"13px",color:"var(--text2)",fontStyle:"italic",marginBottom:"10px",lineHeight:"1.5"}}, "\""+n.ratingWhy+"\""));
+  if(n.text) wrap.appendChild(h("div", {style:{fontSize:"14px",lineHeight:"1.6",color:"var(--text)",whiteSpace:"pre-wrap",marginBottom:"12px"}}, n.text));
+  if(n.lessons) wrap.appendChild(h("div", {style:{fontSize:"13px",color:"var(--text2)",marginBottom:"10px"}}, h("strong", {style:{color:"var(--blue)"}}, "Lesson: "), n.lessons));
+  if(n.tomorrowIntent) wrap.appendChild(h("div", {style:{fontSize:"13px",color:"var(--text2)",marginBottom:"12px"}}, h("strong", {style:{color:"var(--teal)"}}, "Tomorrow: "), n.tomorrowIntent));
+  wrap.appendChild(h("button", {className:"btn btn-ghost", style:{padding:"8px",fontSize:"13px"}, onClick:()=>openModal({type:"night"})}, "Edit Nightly Rundown"));
+  return wrap;
+}
+
+function renderMoment(m) {
+  const type = MOMENT_TYPES.find(t => t.id === m.type) || MOMENT_TYPES[0];
+  const cats = (m.categories || []).map(id => getCategoryById(id)).filter(Boolean);
+  const where = m.where ? WHERE_OPTIONS.find(o => o.id === m.where) : null;
+  const withW = m.withWhom ? WITH_OPTIONS.find(o => o.id === m.withWhom) : null;
+  const ctxBits = [];
+  if(where) ctxBits.push(where.icon + " " + where.label);
+  if(withW) ctxBits.push(withW.icon + " " + withW.label);
+  return h("div", {className:"moment"},
+    h("div", {className:"moment-head"},
+      h("div", {className:"moment-type", style:{color:type.color}},
+        h("span", null, type.icon), type.label
+      ),
+      h("div", {className:"moment-time"}, fmtTime(m.at))
+    ),
+    h("div", {className:"moment-text"}, m.text),
+    cats.length ? h("div", {className:"moment-cats"},
+      ...cats.map(c => h("span", {
+        className:"moment-cat-chip",
+        style:{borderColor:c.color, color:c.color}
+      }, c.label))
+    ) : null,
+    ctxBits.length ? h("div", {style:{display:"flex",gap:"10px",marginTop:"6px",fontSize:"10px",color:"var(--text3)"}},
+      ...ctxBits.map(b => h("span", null, b))
+    ) : null,
+    h("button", {className:"moment-del", onClick:()=>{
+      state.modal = {type:"confirm", msg:"Delete this moment?", yes: () => {
+        state.day.moments = state.day.moments.filter(x => x.id !== m.id);
+        save(); state.modal=null; render();
+      }};
+      render();
+    }}, "×")
+  );
+}
+
+// ─── MODAL ───
+function openModal(cfg) {
+  state.modal = cfg;
+  state.modalDraft = "";
+  state.modalCats = [];
+  state.modalWhere = null;
+  state.modalWith = null;
+  state.nightStep = 0;
+  render();
+  setTimeout(() => {
+    const ta = document.querySelector(".modal textarea");
+    if(ta) ta.focus();
+  }, 100);
+}
+
+function closeModal() { state.modal = null; render(); }
+
+function renderModal() {
+  const bg = h("div", {className:"modal-bg", onClick:(e)=>{ if(e.target.classList.contains("modal-bg")) closeModal(); }});
+  const modal = h("div", {className:"modal"});
+
+  if(state.modal.type === "moment") {
+    const type = MOMENT_TYPES.find(t => t.id === state.modal.momentType);
+    if(!state.modalCats) state.modalCats = [];
+    if(state.modalWhere === undefined) state.modalWhere = null;
+    if(state.modalWith === undefined) state.modalWith = null;
+    modal.appendChild(h("div", {className:"modal-head"},
+      h("div", {className:"modal-title", style:{color:type.color}}, type.icon+" Quick "+type.label),
+      h("button", {className:"modal-close", onClick:closeModal}, "×")
+    ));
+    const ta = h("textarea", {placeholder: `What's the ${type.label.toLowerCase()}?`, rows: 4});
+    ta.value = state.modalDraft || "";
+    ta.addEventListener("input", e => state.modalDraft = e.target.value);
+    modal.appendChild(ta);
+
+    // Category picker — required, multi-select
+    modal.appendChild(h("div", {className:"rundown-label", style:{marginTop:"14px"}},
+      "Categories — pick all that apply",
+      h("span", {style:{color:"var(--text3)",marginLeft:"6px",fontWeight:"400"}},
+        state.modalCats.length ? "("+state.modalCats.length+" selected)" : "(at least one required)")
+    ));
+    const catWrap = h("div", {className:"pills"});
+    getAllCategories().forEach(c => {
+      const selected = state.modalCats.includes(c.id);
+      const pill = h("button", {
+        className:"pill"+(selected?" on":""),
+        title: c.desc || "",
+        style: selected ? {background:c.color, borderColor:c.color, color:"var(--bg)"} : {},
+        onClick: () => {
+          if(selected) state.modalCats = state.modalCats.filter(x => x !== c.id);
+          else state.modalCats = [...state.modalCats, c.id];
+          render();
+          setTimeout(()=>document.querySelector(".modal textarea")?.focus(),0);
+        }
+      }, c.label);
+      catWrap.appendChild(pill);
+    });
+    modal.appendChild(catWrap);
+
+    // Where (optional, single-select)
+    modal.appendChild(h("div", {className:"rundown-label", style:{marginTop:"14px",color:"var(--text3)"}},
+      "Where?",
+      h("span", {style:{color:"var(--text4)",marginLeft:"6px",fontWeight:"400",fontSize:"11px"}}, "(optional)")
+    ));
+    const whereWrap = h("div", {className:"pills"});
+    WHERE_OPTIONS.forEach(o => {
+      const selected = state.modalWhere === o.id;
+      whereWrap.appendChild(h("button", {
+        className:"pill"+(selected?" on":""),
+        onClick: () => {
+          state.modalWhere = selected ? null : o.id;
+          render(); setTimeout(()=>document.querySelector(".modal textarea")?.focus(),0);
+        }
+      }, o.icon + " " + o.label));
+    });
+    modal.appendChild(whereWrap);
+
+    // With whom (optional, single-select)
+    modal.appendChild(h("div", {className:"rundown-label", style:{marginTop:"12px",color:"var(--text3)"}},
+      "With whom?",
+      h("span", {style:{color:"var(--text4)",marginLeft:"6px",fontWeight:"400",fontSize:"11px"}}, "(optional)")
+    ));
+    const whoWrap = h("div", {className:"pills"});
+    WITH_OPTIONS.forEach(o => {
+      const selected = state.modalWith === o.id;
+      whoWrap.appendChild(h("button", {
+        className:"pill"+(selected?" on":""),
+        onClick: () => {
+          state.modalWith = selected ? null : o.id;
+          render(); setTimeout(()=>document.querySelector(".modal textarea")?.focus(),0);
+        }
+      }, o.icon + " " + o.label));
+    });
+    modal.appendChild(whoWrap);
+
+    modal.appendChild(h("div", {style:{display:"flex",gap:"10px",marginTop:"16px"}},
+      h("button", {className:"btn btn-ghost", style:{flex:"1"}, onClick:closeModal}, "Cancel"),
+      h("button", {
+        className:"btn btn-gold",
+        style:{flex:"2", background:type.color, opacity: (state.modalDraft||"").trim() && state.modalCats.length ? 1 : 0.45},
+        onClick:()=>{
+          const text = (state.modalDraft||"").trim();
+          if(!text) { toast("Write something first"); return; }
+          if(!state.modalCats.length) { toast("Pick at least one category"); return; }
+          state.day.moments.push({
+            id: Date.now()+Math.random(),
+            type: type.id,
+            text,
+            at: nowISO(),
+            categories: [...state.modalCats],
+            where: state.modalWhere,
+            withWhom: state.modalWith,
+          });
+          save();
+          toast(type.icon+" Logged");
+          state.modalCats = [];
+          state.modalWhere = null;
+          state.modalWith = null;
+          closeModal();
+        }
+      }, "Save "+type.label)
+    ));
+  }
+
+  else if(state.modal.type === "morning") {
+    const m = state.day.morning;
+    modal.appendChild(h("div", {className:"modal-head"},
+      h("div", {className:"modal-title", style:{color:"var(--orange)"}}, "🌅 Morning Rundown"),
+      h("button", {className:"modal-close", onClick:()=>{ if(!m.loggedAt) m.loggedAt = nowISO(); save(); closeModal(); }}, "×")
+    ));
+
+    // ─── INTENT — most prominent, at the top ───
+    modal.appendChild(h("div", {style:{padding:"14px",background:"rgba(201,168,124,.08)",border:"1px solid var(--gold-dim)",borderRadius:"var(--radius-sm)",marginBottom:"16px"}},
+      h("div", {style:{fontSize:"10px",color:"var(--gold)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:"700",marginBottom:"8px"}}, "⭐ Today's Intent"),
+      h("div", {style:{fontSize:"11px",color:"var(--text3)",lineHeight:"1.5",marginBottom:"10px"}},
+        "The quality of day you're aiming for. Not a task — a feeling or posture. \"A patient day.\" \"Deep focus.\" \"Present with my wife.\""
+      ),
+      (() => {
+        const intentInput = h("input", {placeholder:"Today I want..."});
+        intentInput.value = m.intent || "";
+        intentInput.addEventListener("input", e => {
+          m.intent = e.target.value;
+          if(!m.loggedAt) m.loggedAt = nowISO();
+        });
+        intentInput.addEventListener("blur", () => save());
+        return intentInput;
+      })()
+    ));
+
+    // Text rant
+    modal.appendChild(h("div", {className:"rundown-label"}, "Morning thoughts — plan, rant, vent, whatever"));
+    const ta = autoTextarea(
+      () => m.text,
+      v => { m.text = v; if(!m.loggedAt) m.loggedAt = nowISO(); },
+      "What do I want to do today? How am I feeling? What's on my mind?",
+      5
+    );
+    modal.appendChild(ta);
+
+    modal.appendChild(h("div", {className:"rundown-label", style:{marginTop:"16px"}}, "How's the mood?"));
+    modal.appendChild(renderMoodPills(m.mood, v=>{ m.mood=v; if(!m.loggedAt) m.loggedAt=nowISO(); save(); render(); setTimeout(()=>document.querySelector(".modal textarea")?.focus(),0); }));
+
+    modal.appendChild(h("div", {className:"rundown-label", style:{marginTop:"16px"}}, "Energy"));
+    modal.appendChild(renderPills(ENERGY, m.energy, v=>{ m.energy=v; if(!m.loggedAt) m.loggedAt=nowISO(); save(); render(); }, false, "var(--orange)"));
+
+    modal.appendChild(h("div", {className:"rundown-label", style:{marginTop:"16px"}}, "Sleep last night"));
+    modal.appendChild(renderPills(SLEEP, m.sleep, v=>{ m.sleep=v; if(!m.loggedAt) m.loggedAt=nowISO(); save(); render(); }, false, "var(--blue)"));
+
+    modal.appendChild(h("div", {className:"rundown-label", style:{marginTop:"16px"}}, "What areas am I focused on?"));
+    modal.appendChild(renderPills(CATS, m.plannedCategories, v=>{ m.plannedCategories=v; if(!m.loggedAt) m.loggedAt=nowISO(); save(); render(); }, true, "var(--purple)"));
+
+    // ─── External context (optional) ───
+    modal.appendChild(h("div", {style:{marginTop:"22px",padding:"14px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)"}},
+      h("div", {style:{fontSize:"10px",color:"var(--text3)",letterSpacing:".12em",textTransform:"uppercase",fontWeight:"700",marginBottom:"4px"}}, "External Context"),
+      h("div", {style:{fontSize:"11px",color:"var(--text4)",lineHeight:"1.5",marginBottom:"12px"}},
+        "So Jiya knows what kind of day you're walking into — not just how you feel about it."
+      ),
+
+      h("div", {className:"rundown-label"}, "Schedule today"),
+      renderPills(["Light","Normal","Heavy"], m.scheduleLoad, v=>{ m.scheduleLoad=v; if(!m.loggedAt) m.loggedAt=nowISO(); save(); render(); }, false, "var(--purple)"),
+
+      h("div", {className:"rundown-label", style:{marginTop:"14px"}}, "Anything stressful on the horizon? (optional)"),
+      (() => {
+        const inp = h("input", {placeholder:"A meeting, a conversation, an appointment..."});
+        inp.value = m.stressor || "";
+        inp.addEventListener("input", e => { m.stressor = e.target.value; if(!m.loggedAt) m.loggedAt=nowISO(); });
+        inp.addEventListener("blur", () => save());
+        return inp;
+      })(),
+
+      h("div", {className:"rundown-label", style:{marginTop:"14px"}}, "Anything to look forward to? (optional)"),
+      (() => {
+        const inp = h("input", {placeholder:"One small thing or one big thing..."});
+        inp.value = m.anticipation || "";
+        inp.addEventListener("input", e => { m.anticipation = e.target.value; if(!m.loggedAt) m.loggedAt=nowISO(); });
+        inp.addEventListener("blur", () => save());
+        return inp;
+      })()
+    ));
+
+    modal.appendChild(h("button", {className:"btn btn-gold", style:{marginTop:"20px",background:"var(--orange)"}, onClick:()=>{
+      if(!m.loggedAt) m.loggedAt = nowISO();
+      save(); toast("Morning saved ☀️"); closeModal();
+    }}, "Done"));
+  }
+
+  else if(state.modal.type === "night") {
+    const n = state.day.night;
+    const totalSteps = 7;
+    const step = state.nightStep || 0;
+
+    // ─── Header ───
+    modal.appendChild(h("div", {className:"modal-head"},
+      h("div", {className:"modal-title", style:{color:"var(--purple)"}}, "🌙 Nightly Rundown"),
+      h("button", {className:"modal-close", onClick:()=>{
+        if(!n.loggedAt) n.loggedAt = nowISO();
+        save(); state.nightStep = 0; closeModal();
+      }}, "×")
+    ));
+
+    // ─── Progress dots (tappable for free navigation) ───
+    const dots = h("div", {style:{display:"flex",justifyContent:"center",gap:"8px",margin:"6px 0 20px"}});
+    for(let i=0; i<totalSteps; i++) {
+      const isCurrent = i === step;
+      dots.appendChild(h("button", {
+        style:{
+          width: isCurrent ? "22px" : "8px",
+          height:"8px", borderRadius:"4px",
+          background: isCurrent ? "var(--purple)" : (i < step ? "var(--text3)" : "var(--border2)"),
+          transition:"all .25s", padding:"0", border:"none"
+        },
+        onClick: () => { state.nightStep = i; render(); }
+      }));
+    }
+    modal.appendChild(dots);
+
+    // ─── Step content ───
+    const stepWrap = h("div");
+
+    if(step === 0) {
+      // STEP 1: Today's recap
+      stepWrap.appendChild(h("div", {className:"rundown-label"}, "Step 1 — Your day at a glance"));
+      const counts = {};
+      state.day.moments.forEach(mo => counts[mo.type] = (counts[mo.type]||0) + 1);
+      const totalMoments = state.day.moments.length;
+      // Big number
+      stepWrap.appendChild(h("div", {style:{textAlign:"center",padding:"20px 0"}},
+        h("div", {style:{fontSize:"48px",fontWeight:"700",color:"var(--gold)",lineHeight:"1"}}, String(totalMoments)),
+        h("div", {style:{fontSize:"11px",color:"var(--text3)",letterSpacing:".1em",textTransform:"uppercase",marginTop:"6px"}}, "Moments today")
+      ));
+      if(Object.keys(counts).length) {
+        const list = h("div", {style:{display:"flex",flexWrap:"wrap",gap:"8px",justifyContent:"center",marginBottom:"16px"}});
+        MOMENT_TYPES.filter(t => counts[t.id]).forEach(t =>
+          list.appendChild(h("span", {style:{padding:"6px 12px",background:"var(--bg3)",borderRadius:"var(--radius-pill)",fontSize:"12px",color:t.color,fontWeight:"600",border:"1px solid var(--border)"}},
+            t.icon + " " + counts[t.id] + " " + t.label.toLowerCase() + (counts[t.id]!==1?"s":"")
+          ))
+        );
+        stepWrap.appendChild(list);
+      }
+      // Morning context if available
+      const m = state.day.morning;
+      if(m.mood !== null || m.energy !== null || m.sleep !== null) {
+        const ctx = h("div", {style:{padding:"14px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)",marginTop:"8px"}});
+        ctx.appendChild(h("div", {style:{fontSize:"10px",color:"var(--text3)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:"8px"}}, "This morning you felt"));
+        const row = h("div", {style:{display:"flex",gap:"14px",fontSize:"13px",color:"var(--text2)",flexWrap:"wrap"}});
+        if(m.mood !== null) row.appendChild(h("span", null, MOODS[m.mood].e + " " + MOODS[m.mood].l));
+        if(m.energy !== null) row.appendChild(h("span", null, "⚡ " + ENERGY[m.energy]));
+        if(m.sleep !== null) row.appendChild(h("span", null, "🌙 " + SLEEP[m.sleep]));
+        ctx.appendChild(row);
+        stepWrap.appendChild(ctx);
+      }
+
+      // ─── Intent match ───
+      if(state.day.morning.intent && state.day.morning.intent.trim()) {
+        const intentCard = h("div", {style:{marginTop:"16px",padding:"14px",background:"rgba(201,168,124,.08)",border:"1px solid var(--gold-dim)",borderRadius:"var(--radius-sm)"}});
+        intentCard.appendChild(h("div", {style:{fontSize:"10px",color:"var(--gold)",letterSpacing:".14em",textTransform:"uppercase",fontWeight:"700",marginBottom:"6px"}}, "⭐ This morning you set"));
+        intentCard.appendChild(h("div", {style:{fontSize:"14px",color:"var(--text)",fontStyle:"italic",marginBottom:"12px",lineHeight:"1.5"}},
+          "\"" + state.day.morning.intent.trim() + "\""
+        ));
+        intentCard.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text2)",marginBottom:"10px"}},
+          "Did today match that intent?"
+        ));
+        intentCard.appendChild(renderPills(
+          ["Nope","Kinda","Partly","Mostly","Yes"],
+          n.intentMatch,
+          v => { n.intentMatch = v; if(!n.loggedAt) n.loggedAt = nowISO(); save(); render(); },
+          false, "var(--gold)"
+        ));
+        if(n.intentMatch !== null) {
+          intentCard.appendChild(h("div", {className:"rundown-label", style:{marginTop:"14px"}}, "Want to add a thought? (optional)"));
+          intentCard.appendChild(autoTextarea(
+            () => n.intentMatchWhy,
+            v => { n.intentMatchWhy = v; if(!n.loggedAt) n.loggedAt = nowISO(); },
+            "What made it match or not match?",
+            2
+          ));
+        }
+        stepWrap.appendChild(intentCard);
+      } else {
+        // No intent was set this morning — mention it so the pattern "no intent day" becomes data
+        stepWrap.appendChild(h("div", {style:{marginTop:"14px",padding:"10px 12px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px dashed var(--border2)",fontSize:"11px",color:"var(--text3)",lineHeight:"1.5"}},
+          "No intent set this morning. Try setting one tomorrow — it helps Jiya correlate posture against outcome."
+        ));
+      }
+
+      stepWrap.appendChild(h("div", {style:{textAlign:"center",fontSize:"12px",color:"var(--text3)",marginTop:"16px",lineHeight:"1.5"}},
+        "Take a breath. Next, let's check on your goals."
+      ));
+    }
+
+    else if(step === 1) {
+      // STEP 2: Goals check
+      stepWrap.appendChild(h("div", {className:"rundown-label"}, "Step 2 — Goals check"));
+      stepWrap.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text3)",marginBottom:"14px",lineHeight:"1.5"}},
+        "Mark each as done, roll forward, or kill. Killed goals stop appearing tomorrow."
+      ));
+
+      const cd = state.dayDate, cw = weekOf(cd), cm = monthOf(cd);
+      const dailyList = (state.dG[cd] || []).filter(g => !g.killed);
+      const weeklyList = (state.wG[cw] || []).filter(g => !g.killed);
+      const monthlyList = (state.mG[cm] || []).filter(g => !g.killed);
+
+      const renderGoalRow = (g, scope) => {
+        const streak = scope === "daily" ? dailyGoalStreak(g) : 1;
+        const row = h("div", {style:{padding:"12px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)",marginBottom:"8px"}});
+        row.appendChild(h("div", {style:{display:"flex",alignItems:"center",gap:"8px",marginBottom:"10px"}},
+          h("div", {style:{flex:"1"}},
+            h("div", {style:{fontSize:"13px",color:g.done?"var(--text3)":"var(--text)",textDecoration:g.done?"line-through":"none",lineHeight:"1.4"}}, g.text),
+            (scope === "daily" && streak > 1) ? h("div", {style:{fontSize:"10px",color:"var(--orange)",fontWeight:"600",marginTop:"3px"}}, "↻ Day " + streak) : null
+          )
+        ));
+        const btnRow = h("div", {style:{display:"flex",gap:"6px"}});
+        // Done
+        btnRow.appendChild(h("button", {
+          style:{flex:"1",padding:"8px",fontSize:"12px",fontWeight:"600",borderRadius:"6px",border:"1px solid",borderColor: g.done ? "var(--green)" : "var(--border)",background: g.done ? "var(--green)" : "transparent",color: g.done ? "var(--bg)" : "var(--text2)"},
+          onClick: () => { g.done = true; saveGoals(); render(); }
+        }, "✓ Done"));
+        // Roll forward (daily only meaningful action; for weekly/monthly we leave un-done)
+        if(scope === "daily") {
+          btnRow.appendChild(h("button", {
+            style:{flex:"1",padding:"8px",fontSize:"12px",fontWeight:"600",borderRadius:"6px",border:"1px solid var(--border)",background:"transparent",color:"var(--text2)"},
+            onClick: () => { g.done = false; saveGoals(); toast("Will roll to tomorrow"); render(); }
+          }, "↻ Roll"));
+        } else {
+          btnRow.appendChild(h("button", {
+            style:{flex:"1",padding:"8px",fontSize:"12px",fontWeight:"600",borderRadius:"6px",border:"1px solid var(--border)",background:"transparent",color:"var(--text2)"},
+            onClick: () => { g.done = false; saveGoals(); render(); }
+          }, "Not yet"));
+        }
+        // Kill
+        btnRow.appendChild(h("button", {
+          style:{flex:"1",padding:"8px",fontSize:"12px",fontWeight:"600",borderRadius:"6px",border:"1px solid var(--border)",background:"transparent",color:"var(--red)"},
+          onClick: () => {
+            if(scope === "daily") {
+              Object.values(state.dG).forEach(list => {
+                const found = list.find(x => x.id === g.id);
+                if(found) found.killed = true;
+              });
+            } else if(scope === "weekly") {
+              const found = (state.wG[cw]||[]).find(x => x.id === g.id);
+              if(found) found.killed = true;
+            } else {
+              const found = (state.mG[cm]||[]).find(x => x.id === g.id);
+              if(found) found.killed = true;
+            }
+            saveGoals(); render();
+          }
+        }, "✕ Kill"));
+        row.appendChild(btnRow);
+        return row;
+      };
+
+      const section = (label, list, scope, color) => {
+        if(!list.length) return;
+        stepWrap.appendChild(h("div", {style:{fontSize:"11px",color:color,letterSpacing:".1em",textTransform:"uppercase",fontWeight:"600",margin:"14px 0 8px"}}, label));
+        list.forEach(g => stepWrap.appendChild(renderGoalRow(g, scope)));
+      };
+      section("Daily (" + dailyList.length + ")", dailyList, "daily", "var(--orange)");
+      section("Weekly (" + weeklyList.length + ")", weeklyList, "weekly", "var(--gold)");
+      section("Monthly (" + monthlyList.length + ")", monthlyList, "monthly", "var(--purple)");
+
+      if(!dailyList.length && !weeklyList.length && !monthlyList.length) {
+        stepWrap.appendChild(h("div", {style:{padding:"30px 12px",textAlign:"center",color:"var(--text3)",fontSize:"13px",lineHeight:"1.5"}},
+          "No active goals. Set some on the Goals tab when you're ready."
+        ));
+      }
+    }
+
+    else if(step === 2) {
+      // STEP 3: Rating + why
+      stepWrap.appendChild(h("div", {className:"rundown-label"}, "Step 3 — Rate the day (1–10)"));
+      stepWrap.appendChild(renderPills(["1","2","3","4","5","6","7","8","9","10"], n.rating, v=>{ n.rating=v; if(!n.loggedAt) n.loggedAt=nowISO(); save(); render(); }, false, "var(--yellow)"));
+      if(n.rating !== null) {
+        stepWrap.appendChild(h("div", {className:"rundown-label", style:{marginTop:"16px"}}, "Why a " + (n.rating+1) + "/10?"));
+        stepWrap.appendChild(autoTextarea(() => n.ratingWhy, v=>{ n.ratingWhy=v; if(!n.loggedAt) n.loggedAt=nowISO(); }, "What made it that way?", 3));
+      }
+    }
+
+    else if(step === 3) {
+      // STEP 4: End-of-day mood + energy
+      stepWrap.appendChild(h("div", {className:"rundown-label"}, "Step 4 — How are you ending the day?"));
+      stepWrap.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text3)",marginBottom:"12px",lineHeight:"1.5"}},
+        "Quick read of your current mood and energy. Comparing this to your morning gives Jiya the daily delta."
+      ));
+      stepWrap.appendChild(h("div", {className:"rundown-label", style:{marginTop:"6px"}}, "Mood right now"));
+      stepWrap.appendChild(renderMoodPills(n.endMood, v=>{ n.endMood=v; if(!n.loggedAt) n.loggedAt=nowISO(); save(); render(); }));
+      stepWrap.appendChild(h("div", {className:"rundown-label", style:{marginTop:"16px"}}, "Energy right now"));
+      stepWrap.appendChild(renderPills(ENERGY, n.endEnergy, v=>{ n.endEnergy=v; if(!n.loggedAt) n.loggedAt=nowISO(); save(); render(); }, false, "var(--orange)"));
+      // Show morning comparison if available
+      const m = state.day.morning;
+      if(m.mood !== null || m.energy !== null) {
+        stepWrap.appendChild(h("div", {style:{marginTop:"18px",padding:"12px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)",fontSize:"12px",color:"var(--text2)",lineHeight:"1.5"}},
+          h("div", {style:{fontSize:"10px",color:"var(--text3)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:"6px"}}, "This morning"),
+          (m.mood !== null ? MOODS[m.mood].e + " " + MOODS[m.mood].l : "—") + " · " + (m.energy !== null ? "⚡ " + ENERGY[m.energy] : "—")
+        ));
+      }
+    }
+
+    else if(step === 4) {
+      // STEP 5: Productivity
+      stepWrap.appendChild(h("div", {className:"rundown-label"}, "Step 5 — How productive did the day feel?"));
+      stepWrap.appendChild(renderPills(PROD, n.productivity, v=>{ n.productivity=v; if(!n.loggedAt) n.loggedAt=nowISO(); save(); render(); }));
+      stepWrap.appendChild(h("div", {className:"rundown-label", style:{marginTop:"20px"}}, "Nightly thoughts (optional)"));
+      stepWrap.appendChild(autoTextarea(() => n.text, v=>{ n.text=v; if(!n.loggedAt) n.loggedAt=nowISO(); }, "What worked? What didn't? What's on your mind?", 4));
+    }
+
+    else if(step === 5) {
+      // STEP 6: Tomorrow's intent
+      stepWrap.appendChild(h("div", {className:"rundown-label"}, "Step 6 — What matters tomorrow?"));
+      stepWrap.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text3)",marginBottom:"12px",lineHeight:"1.5"}},
+        "One sentence. The thing that, if you do it, makes tomorrow a win."
+      ));
+      stepWrap.appendChild(autoTextarea(() => n.tomorrowIntent, v=>{ n.tomorrowIntent=v; if(!n.loggedAt) n.loggedAt=nowISO(); }, "Tomorrow I will...", 3));
+    }
+
+    else if(step === 6) {
+      // STEP 7: Lessons (optional)
+      stepWrap.appendChild(h("div", {className:"rundown-label"}, "Step 7 — Any lesson worth keeping? (optional)"));
+      stepWrap.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text3)",marginBottom:"12px",lineHeight:"1.5"}},
+        "Skip this if nothing comes to mind. Forced lessons are noise."
+      ));
+      stepWrap.appendChild(autoTextarea(() => n.lessons, v=>{ n.lessons=v; if(!n.loggedAt) n.loggedAt=nowISO(); }, "Lesson, insight, realization...", 3));
+    }
+
+    modal.appendChild(stepWrap);
+
+    // ─── Step navigation ───
+    const navRow = h("div", {style:{display:"flex",gap:"10px",marginTop:"24px"}});
+    if(step > 0) {
+      navRow.appendChild(h("button", {
+        className:"btn btn-ghost", style:{flex:"1"},
+        onClick: () => { state.nightStep = step - 1; render(); }
+      }, "‹ Back"));
+    }
+    if(step < totalSteps - 1) {
+      navRow.appendChild(h("button", {
+        className:"btn btn-gold", style:{flex:"2", background:"var(--purple)"},
+        onClick: () => { state.nightStep = step + 1; render(); }
+      }, "Next ›"));
+    } else {
+      navRow.appendChild(h("button", {
+        className:"btn btn-gold", style:{flex:"2", background:"var(--purple)"},
+        onClick: () => {
+          if(!n.loggedAt) n.loggedAt = nowISO();
+          save(); toast("Night saved 🌙");
+          state.nightStep = 0;
+          closeModal();
+        }
+      }, "Finish 🌙"));
+    }
+    modal.appendChild(navRow);
+  }
+
+  else if(state.modal.type === "confirm") {
+    modal.appendChild(h("div", {className:"modal-head"},
+      h("div", {className:"modal-title"}, "Confirm"),
+      h("button", {className:"modal-close", onClick:closeModal}, "×")
+    ));
+    modal.appendChild(h("div", {style:{fontSize:"14px",color:"var(--text2)",marginBottom:"16px"}}, state.modal.msg));
+    modal.appendChild(h("div", {style:{display:"flex",gap:"10px"}},
+      h("button", {className:"btn btn-ghost", style:{flex:"1"}, onClick:closeModal}, "Cancel"),
+      h("button", {className:"btn", style:{flex:"1",background:"var(--red)",color:"var(--bg)"}, onClick:state.modal.yes}, "Delete")
+    ));
+  }
+
+  else if(state.modal.type === "sundayPopup") {
+    modal.appendChild(h("div", {className:"modal-head"},
+      h("div", {className:"modal-title", style:{color:"var(--gold)"}}, "📅 Sunday Reflection"),
+      h("button", {className:"modal-close", onClick:()=>{
+        DB.set("sundayDismissed", {date: today()});
+        closeModal();
+      }}, "×")
+    ));
+    const week = getWeekRange(today());
+    const stats = buildWeekStats(week);
+    modal.appendChild(h("div", {style:{fontSize:"14px",color:"var(--text2)",lineHeight:"1.6",marginBottom:"16px"}},
+      "Your week is ready to review. ",
+      h("strong",{style:{color:"var(--text)"}}, String(stats.totalMoments)),
+      " moments logged across ",
+      h("strong",{style:{color:"var(--text)"}}, stats.daysActive+"/7"),
+      " days. Take a minute to see how it broke down."
+    ));
+    modal.appendChild(h("div", {style:{display:"flex",gap:"10px"}},
+      h("button", {className:"btn btn-ghost", style:{flex:"1"}, onClick:()=>{
+        DB.set("sundayDismissed", {date: today()});
+        closeModal();
+      }}, "Later"),
+      h("button", {className:"btn btn-gold", style:{flex:"2"}, onClick:()=>{
+        DB.set("sundayDismissed", {date: today()});
+        state.view = "summary";
+        state.summaryMode = "week";
+        state.summaryAnchor = today();
+        closeModal();
+      }}, "View Summary")
+    ));
+  }
+
+  else if(state.modal.type === "monthPopup") {
+    const lastMonthAnchor = state.modal.anchor;
+    const monthDates = getMonthRange(lastMonthAnchor);
+    const stats = buildWeekStats(monthDates);
+    const monthName = new Date(lastMonthAnchor + "T12:00:00").toLocaleDateString("en-US", {month:"long", year:"numeric"});
+    modal.appendChild(h("div", {className:"modal-head"},
+      h("div", {className:"modal-title", style:{color:"var(--gold)"}}, "📆 " + monthName + " is a wrap"),
+      h("button", {className:"modal-close", onClick:()=>{
+        DB.set("monthDismissed", {date: today()});
+        closeModal();
+      }}, "×")
+    ));
+    modal.appendChild(h("div", {style:{fontSize:"14px",color:"var(--text2)",lineHeight:"1.6",marginBottom:"16px"}},
+      "A new month has started. Last month you logged ",
+      h("strong",{style:{color:"var(--text)"}}, String(stats.totalMoments)),
+      " moments across ",
+      h("strong",{style:{color:"var(--text)"}}, stats.daysActive + "/" + monthDates.length),
+      " days. Worth a look back before diving in."
+    ));
+    modal.appendChild(h("div", {style:{display:"flex",gap:"10px"}},
+      h("button", {className:"btn btn-ghost", style:{flex:"1"}, onClick:()=>{
+        DB.set("monthDismissed", {date: today()});
+        closeModal();
+      }}, "Later"),
+      h("button", {className:"btn btn-gold", style:{flex:"2"}, onClick:()=>{
+        DB.set("monthDismissed", {date: today()});
+        state.view = "summary";
+        state.summaryMode = "month";
+        state.summaryAnchor = lastMonthAnchor;
+        closeModal();
+      }}, "View Month")
+    ));
+  }
+
+  bg.appendChild(modal);
+  return bg;
+}
+
+function renderMoodPills(val, onChange) {
+  return h("div", {className:"pills"}, ...MOODS.map((m,i) => {
+    const on = val === i;
+    return h("button", {
+      className:"pill"+(on?" on":""),
+      onClick:()=>onChange(i)
+    }, m.e+" "+m.l);
+  }));
+}
+
+function renderPills(opts, val, onChange, multi, accent) {
+  accent = accent || "var(--gold)";
+  return h("div", {className:"pills"}, ...opts.map((o,i) => {
+    const lb = typeof o==="string" ? o : o.l;
+    const ds = typeof o==="string" ? o : o.e+" "+o.l;
+    const on = multi ? (val||[]).includes(lb) : val===i;
+    const pill = h("button", {
+      className:"pill"+(on?" on":""),
+      onClick: () => {
+        if(multi) { const a=val||[]; onChange(a.includes(lb)?a.filter(x=>x!==lb):[...a,lb]); }
+        else onChange(i);
+      }
+    }, ds);
+    if(on) { pill.style.borderColor = accent; pill.style.color = accent; }
+    return pill;
+  }));
+}
+
+// ─── HISTORY ───
+function renderHistory(wrap) {
+  const dates = Object.keys(state.days).filter(d => {
+    const day = state.days[d];
+    return day && (day.moments.length > 0 || day.morning.text || day.night.text || day.night.rating !== null);
+  }).sort().reverse();
+
+  const totalMoments = dates.reduce((s,d) => s + (state.days[d].moments?.length || 0), 0);
+  const ratings = dates.map(d => state.days[d].night.rating).filter(r => r !== null).map(r => r+1);
+  const avgRating = ratings.length ? (ratings.reduce((a,b)=>a+b,0)/ratings.length).toFixed(1) : "—";
+
+  wrap.appendChild(h("div", {className:"stat-row"},
+    h("div", {className:"stat"}, h("div",{className:"stat-val"},String(dates.length)), h("div",{className:"stat-label"},"Days")),
+    h("div", {className:"stat"}, h("div",{className:"stat-val"},String(totalMoments)), h("div",{className:"stat-label"},"Moments")),
+    h("div", {className:"stat"}, h("div",{className:"stat-val"},avgRating+"/10"), h("div",{className:"stat-label"},"Avg Day"))
+  ));
+
+  if(!dates.length) {
+    wrap.appendChild(h("div", {style:{textAlign:"center",padding:"40px",color:"var(--text4)"}},
+      h("div", {style:{fontSize:"40px",marginBottom:"12px"}}, "📝"), "No entries yet — start your first moment!"));
+    return;
+  }
+
+  dates.forEach(d => {
+    const day = state.days[d];
+    const counts = {};
+    day.moments.forEach(m => counts[m.type] = (counts[m.type]||0) + 1);
+    const card = h("button", {className:"hist-card", onClick:()=>{state.dayDate=d;initDay();state.view="today";render();}});
+    card.appendChild(h("div", {style:{display:"flex",justifyContent:"space-between",alignItems:"center"}},
+      h("div", null,
+        h("div", {style:{color:"var(--text)",fontSize:"14px",fontWeight:"600"}}, fmtS(d)),
+        h("div", {style:{color:"var(--text3)",fontSize:"12px",marginTop:"4px"}},
+          day.moments.length+" moment"+(day.moments.length!==1?"s":""),
+          day.morning.text ? " · 🌅" : "",
+          day.night.text || day.night.rating !== null ? " · 🌙" : ""
+        )
+      ),
+      h("div", {style:{display:"flex",gap:"8px",alignItems:"center"}},
+        day.morning.mood !== null ? h("span", {style:{fontSize:"22px"}}, MOODS[day.morning.mood].e) : null,
+        day.night.rating !== null ? h("span", {className:"badge badge-gold"}, (day.night.rating+1)+"/10") : null
+      )
+    ));
+    if(Object.keys(counts).length) {
+      card.appendChild(h("div", {className:"hist-summary"},
+        ...MOMENT_TYPES.filter(t => counts[t.id]).map(t =>
+          h("span", {style:{color:t.color}}, t.icon+" "+counts[t.id])
+        )
+      ));
+    }
+    wrap.appendChild(card);
+  });
+}
+
+// ─── SUMMARY (weekly + monthly) ───
+function getWeekRange(anchorDate) {
+  // Returns array of 7 YYYY-MM-DD strings, Sunday → Saturday, containing anchorDate
+  const d = new Date(anchorDate + "T12:00:00");
+  const sunday = new Date(d);
+  sunday.setDate(d.getDate() - d.getDay());
+  const out = [];
+  for(let i=0; i<7; i++) {
+    const x = new Date(sunday);
+    x.setDate(sunday.getDate() + i);
+    out.push(x.toISOString().split("T")[0]);
+  }
+  return out;
+}
+
+function getMonthRange(anchorDate) {
+  // Returns array of YYYY-MM-DD strings for every day in the calendar month containing anchorDate
+  const d = new Date(anchorDate + "T12:00:00");
+  const year = d.getFullYear(), month = d.getMonth();
+  const lastDay = new Date(year, month + 1, 0).getDate();
+  const out = [];
+  for(let i=1; i<=lastDay; i++) {
+    const x = new Date(year, month, i, 12);
+    out.push(x.toISOString().split("T")[0]);
+  }
+  return out;
+}
+
+function buildWeekStats(dates) {
+  const cats = getAllCategories();
+  const catCounts = {}; cats.forEach(c => catCounts[c.id] = 0);
+  const typeCounts = {}; MOMENT_TYPES.forEach(t => typeCounts[t.id] = 0);
+  let totalMoments = 0;
+  let daysActive = 0;
+  let moodSum = 0, moodN = 0;
+  let energySum = 0, energyN = 0;
+  let sleepSum = 0, sleepN = 0;
+  let prodSum = 0, prodN = 0;
+  let ratingSum = 0, ratingN = 0;
+
+  dates.forEach(date => {
+    const day = state.days[date];
+    if(!day) return;
+    const moments = day.moments || [];
+    if(moments.length || day.morning?.text || day.night?.text) daysActive++;
+    moments.forEach(m => {
+      totalMoments++;
+      typeCounts[m.type] = (typeCounts[m.type]||0) + 1;
+      (m.categories || []).forEach(cid => {
+        if(catCounts[cid] !== undefined) catCounts[cid]++;
+      });
+    });
+    if(day.morning?.mood !== null && day.morning?.mood !== undefined) { moodSum += day.morning.mood; moodN++; }
+    if(day.morning?.energy !== null && day.morning?.energy !== undefined) { energySum += day.morning.energy; energyN++; }
+    if(day.morning?.sleep !== null && day.morning?.sleep !== undefined) { sleepSum += day.morning.sleep; sleepN++; }
+    if(day.night?.productivity !== null && day.night?.productivity !== undefined) { prodSum += day.night.productivity; prodN++; }
+    if(day.night?.rating !== null && day.night?.rating !== undefined) { ratingSum += day.night.rating; ratingN++; }
+  });
+
+  return { catCounts, typeCounts, totalMoments, daysActive,
+    avgMood: moodN ? moodSum/moodN : null,
+    avgEnergy: energyN ? energySum/energyN : null,
+    avgSleep: sleepN ? sleepSum/sleepN : null,
+    avgProd: prodN ? prodSum/prodN : null,
+    avgRating: ratingN ? ratingSum/ratingN : null,
+  };
+}
+
+function renderSummary(wrap) {
+  // Anchor + mode (week or month). Default to current week.
+  if(!state.summaryAnchor) state.summaryAnchor = today();
+  if(!state.summaryMode) state.summaryMode = "week";
+  const anchor = state.summaryAnchor;
+  const mode = state.summaryMode;
+  const dates = mode === "week" ? getWeekRange(anchor) : getMonthRange(anchor);
+  const stats = buildWeekStats(dates);
+  const cats = getAllCategories();
+  const isCurrent = mode === "week"
+    ? (weekOf(anchor) === weekOf(today()))
+    : (monthOf(anchor) === monthOf(today()));
+
+  // ─── Mode toggle ───
+  const toggleCard = h("div", {className:"card", style:{padding:"6px"}});
+  const toggleRow = h("div", {style:{display:"flex",gap:"4px"}});
+  ["week","month"].forEach(m => {
+    toggleRow.appendChild(h("button", {
+      className:"btn",
+      style:{
+        flex:"1",padding:"10px",fontSize:"13px",fontWeight:"600",
+        background: mode === m ? "var(--gold)" : "transparent",
+        color: mode === m ? "var(--bg)" : "var(--text2)",
+        borderRadius:"var(--radius-sm)"
+      },
+      onClick: () => { state.summaryMode = m; state.summaryAnchor = today(); render(); }
+    }, m === "week" ? "Week" : "Month"));
+  });
+  toggleCard.appendChild(toggleRow);
+  wrap.appendChild(toggleCard);
+
+  // ─── Range navigation ───
+  const headerCard = h("div", {className:"card"});
+  const rangeLabel = mode === "week"
+    ? (fmtS(dates[0]) + " — " + fmtS(dates[dates.length-1]))
+    : new Date(anchor + "T12:00:00").toLocaleDateString("en-US", {month:"long", year:"numeric"});
+  headerCard.appendChild(h("div", {style:{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"6px"}},
+    h("button", {className:"btn btn-ghost", style:{padding:"6px 10px",fontSize:"18px"}, onClick:()=>{
+      const d = new Date(anchor + "T12:00:00");
+      if(mode === "week") d.setDate(d.getDate()-7);
+      else d.setMonth(d.getMonth()-1);
+      state.summaryAnchor = d.toISOString().split("T")[0]; render();
+    }}, "‹"),
+    h("div", {style:{textAlign:"center"}},
+      h("div", {style:{fontSize:"11px",color:"var(--text3)",letterSpacing:".12em",textTransform:"uppercase"}},
+        isCurrent ? ("This " + mode) : (mode === "week" ? "Week of" : "")),
+      h("div", {style:{fontSize:"15px",fontWeight:"600",color:"var(--gold)",marginTop:"2px"}}, rangeLabel)
+    ),
+    h("button", {className:"btn btn-ghost", style:{padding:"6px 10px",fontSize:"18px",opacity:isCurrent?0.3:1}, onClick:()=>{
+      if(isCurrent) return;
+      const d = new Date(anchor + "T12:00:00");
+      if(mode === "week") d.setDate(d.getDate()+7);
+      else d.setMonth(d.getMonth()+1);
+      state.summaryAnchor = d.toISOString().split("T")[0]; render();
+    }}, "›")
+  ));
+  wrap.appendChild(headerCard);
+
+  if(stats.totalMoments === 0 && stats.daysActive === 0) {
+    const empty = h("div", {className:"card"});
+    empty.appendChild(h("div", {style:{padding:"24px 8px",textAlign:"center",color:"var(--text3)"}},
+      "Nothing logged this " + mode + " yet. Once you start logging moments, you'll see your category breakdown, wins, losses, and patterns here."));
+    wrap.appendChild(empty);
+    return;
+  }
+
+  // ─── Top-line stats ───
+  const topCard = h("div", {className:"card"});
+  topCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"✨"), "At a glance"));
+  const grid = h("div", {style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"10px"}});
+  const stat = (label, value, color) => h("div", {style:{padding:"12px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)"}},
+    h("div", {style:{fontSize:"10px",color:"var(--text3)",letterSpacing:".1em",textTransform:"uppercase",marginBottom:"4px"}}, label),
+    h("div", {style:{fontSize:"20px",fontWeight:"700",color:color||"var(--gold)"}}, value)
+  );
+  grid.appendChild(stat("Moments", String(stats.totalMoments)));
+  grid.appendChild(stat("Days active", stats.daysActive + "/" + dates.length));
+  if(stats.avgMood !== null) grid.appendChild(stat("Avg mood", MOODS[Math.round(4-stats.avgMood)] ? MOODS[Math.round(4-stats.avgMood)].e : "—", "var(--text)"));
+  if(stats.avgEnergy !== null) grid.appendChild(stat("Avg energy", ENERGY[Math.round(stats.avgEnergy)] || "—", "var(--orange)"));
+  if(stats.avgSleep !== null) grid.appendChild(stat("Avg sleep", SLEEP[Math.round(stats.avgSleep)] || "—", "var(--blue)"));
+  if(stats.avgRating !== null) grid.appendChild(stat("Avg day rating", (stats.avgRating + 1).toFixed(1) + "/10", "var(--gold)"));
+  topCard.appendChild(grid);
+  wrap.appendChild(topCard);
+
+  // ─── Wins & Losses count ───
+  const wlCard = h("div", {className:"card"});
+  wlCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"⚖️"), "Wins & Losses"));
+  const wins = stats.typeCounts.win || 0;
+  const losses = stats.typeCounts.loss || 0;
+  wlCard.appendChild(h("div", {style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"12px"}},
+    h("div", {style:{padding:"16px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)",textAlign:"center"}},
+      h("div", {style:{fontSize:"28px",marginBottom:"4px"}}, "🏆"),
+      h("div", {style:{fontSize:"24px",fontWeight:"700",color:"var(--green)"}}, String(wins)),
+      h("div", {style:{fontSize:"10px",color:"var(--text3)",letterSpacing:".1em",textTransform:"uppercase",marginTop:"2px"}}, "Wins")
+    ),
+    h("div", {style:{padding:"16px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)",textAlign:"center"}},
+      h("div", {style:{fontSize:"28px",marginBottom:"4px"}}, "❌"),
+      h("div", {style:{fontSize:"24px",fontWeight:"700",color:"var(--red)"}}, String(losses)),
+      h("div", {style:{fontSize:"10px",color:"var(--text3)",letterSpacing:".1em",textTransform:"uppercase",marginTop:"2px"}}, "Losses")
+    )
+  ));
+  wrap.appendChild(wlCard);
+
+  // ─── Shape of the period (stacked bar) ───
+  if(stats.totalMoments > 0) {
+    const shapeCard = h("div", {className:"card"});
+    shapeCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"🎨"), "Shape of your " + mode));
+    shapeCard.appendChild(h("div", {style:{fontSize:"11px",color:"var(--text3)",marginBottom:"12px",lineHeight:"1.5"}},
+      "How your moments split across categories. Each section is one category — bigger means more attention."));
+    const stacked = h("div", {style:{display:"flex",height:"24px",width:"100%",borderRadius:"6px",overflow:"hidden",border:"1px solid var(--border)"}});
+    const segments = cats.filter(c => (stats.catCounts[c.id]||0) > 0);
+    const total = segments.reduce((s,c) => s + stats.catCounts[c.id], 0);
+    segments.forEach(c => {
+      const pct = (stats.catCounts[c.id] / total) * 100;
+      stacked.appendChild(h("div", {
+        title: c.label + " — " + Math.round(pct) + "%",
+        style:{width: pct + "%", background: c.color, transition:"width .3s"}
+      }));
+    });
+    shapeCard.appendChild(stacked);
+    // Legend
+    const legend = h("div", {style:{display:"flex",flexWrap:"wrap",gap:"8px 14px",marginTop:"12px"}});
+    segments.forEach(c => {
+      const pct = Math.round((stats.catCounts[c.id] / total) * 100);
+      legend.appendChild(h("div", {style:{display:"flex",alignItems:"center",gap:"6px",fontSize:"12px"}},
+        h("span", {style:{width:"10px",height:"10px",borderRadius:"3px",background:c.color,display:"inline-block"}}),
+        h("span", {style:{color:"var(--text2)"}}, c.label),
+        h("span", {style:{color:"var(--text3)"}}, pct + "%")
+      ));
+    });
+    shapeCard.appendChild(legend);
+    wrap.appendChild(shapeCard);
+  }
+
+  // ─── Category breakdown bars ───
+  const catCard = h("div", {className:"card"});
+  catCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"📊"), "By category"));
+  const sortedCats = [...cats].sort((a,b) => (stats.catCounts[b.id]||0) - (stats.catCounts[a.id]||0));
+  const maxCount = Math.max(1, ...Object.values(stats.catCounts));
+  sortedCats.forEach(c => {
+    const count = stats.catCounts[c.id] || 0;
+    const pct = stats.totalMoments ? Math.round((count / stats.totalMoments) * 100) : 0;
+    const widthPct = (count / maxCount) * 100;
+    const row = h("div", {style:{marginBottom:"10px"}});
+    row.appendChild(h("div", {style:{display:"flex",justifyContent:"space-between",fontSize:"13px",marginBottom:"4px"}},
+      h("span", {style:{color:"var(--text)",fontWeight:"500"}}, c.label),
+      h("span", {style:{color:"var(--text3)"}}, count + " · " + pct + "%")
+    ));
+    const barOuter = h("div", {style:{height:"6px",background:"var(--bg3)",borderRadius:"3px",overflow:"hidden"}});
+    const barInner = h("div", {style:{height:"100%",width:widthPct+"%",background:c.color,borderRadius:"3px",transition:"width .3s"}});
+    barOuter.appendChild(barInner);
+    row.appendChild(barOuter);
+    catCard.appendChild(row);
+  });
+  const quiet = sortedCats.filter(c => (stats.catCounts[c.id]||0) === 0);
+  if(quiet.length && stats.totalMoments > 0) {
+    catCard.appendChild(h("div", {style:{marginTop:"14px",padding:"10px 12px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px dashed var(--border2)"}},
+      h("div", {style:{fontSize:"11px",color:"var(--text3)",letterSpacing:".08em",textTransform:"uppercase",marginBottom:"4px"}}, "Quiet this " + mode),
+      h("div", {style:{fontSize:"13px",color:"var(--text2)"}}, quiet.map(c=>c.label).join(" · "))
+    ));
+  }
+  wrap.appendChild(catCard);
+
+  // ─── Day ratings chart (week mode only) ───
+  if(mode === "week") {
+    const ratingsCard = h("div", {className:"card"});
+    ratingsCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"⭐"), "Daily ratings"));
+    ratingsCard.appendChild(h("div", {style:{fontSize:"11px",color:"var(--text3)",marginBottom:"14px"}}, "How you rated each day at the nightly rundown (out of 10)."));
+    const chart = h("div", {style:{display:"flex",alignItems:"flex-end",gap:"6px",height:"120px"}});
+    const dayLabels = ["S","M","T","W","T","F","S"];
+    dates.forEach((date, i) => {
+      const day = state.days[date];
+      const rating = day?.night?.rating; // 0-9 means 1-10
+      const has = rating !== null && rating !== undefined;
+      const heightPct = has ? ((rating + 1) / 10) * 100 : 0;
+      const barColor = has ? (rating >= 6 ? "var(--green)" : rating >= 3 ? "var(--orange)" : "var(--red)") : "var(--bg3)";
+      chart.appendChild(h("div", {style:{flex:"1",display:"flex",flexDirection:"column",alignItems:"center",gap:"6px",height:"100%"}},
+        h("div", {style:{flex:"1",width:"100%",display:"flex",alignItems:"flex-end",justifyContent:"center"}},
+          h("div", {
+            title: has ? (fmtS(date) + ": " + (rating+1) + "/10") : (fmtS(date) + ": no rating"),
+            style:{width:"100%",height:heightPct+"%",minHeight:has?"4px":"2px",background:barColor,borderRadius:"4px 4px 0 0",transition:"height .3s"}
+          })
+        ),
+        h("div", {style:{fontSize:"10px",color:"var(--text3)",fontWeight:"600"}}, dayLabels[i]),
+        h("div", {style:{fontSize:"9px",color:"var(--text4)"}}, has ? String(rating+1) : "—")
+      ));
+    });
+    ratingsCard.appendChild(chart);
+    wrap.appendChild(ratingsCard);
+  }
+
+  // ─── Mood / Energy / Sleep trend ───
+  const trendDays = dates.map(date => {
+    const day = state.days[date];
+    return {
+      date,
+      mood: day?.morning?.mood,
+      energy: day?.morning?.energy,
+      sleep: day?.morning?.sleep
+    };
+  });
+  const hasTrendData = trendDays.some(d => d.mood !== null && d.mood !== undefined || d.energy !== null && d.energy !== undefined || d.sleep !== null && d.sleep !== undefined);
+  if(hasTrendData) {
+    const trendCard = h("div", {className:"card"});
+    trendCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"📈"), "Mood · Energy · Sleep"));
+    const renderTrendRow = (label, key, max, accent, scaleFn) => {
+      const row = h("div", {style:{marginBottom:"14px"}});
+      row.appendChild(h("div", {style:{fontSize:"11px",color:"var(--text3)",letterSpacing:".08em",textTransform:"uppercase",marginBottom:"6px"}}, label));
+      const bars = h("div", {style:{display:"flex",alignItems:"flex-end",gap:"3px",height:"40px"}});
+      trendDays.forEach(d => {
+        const v = d[key];
+        const has = v !== null && v !== undefined;
+        const heightPct = has ? (scaleFn ? scaleFn(v) : ((v + 1) / max) * 100) : 0;
+        bars.appendChild(h("div", {
+          title: fmtS(d.date) + ": " + (has ? v : "—"),
+          style:{flex:"1",height:heightPct+"%",minHeight:has?"3px":"2px",background:has?accent:"var(--bg3)",borderRadius:"3px 3px 0 0",transition:"height .3s"}
+        }));
+      });
+      row.appendChild(bars);
+      return row;
+    };
+    // mood is reversed (0 = best), energy/sleep normal
+    trendCard.appendChild(renderTrendRow("Mood", "mood", 5, "var(--gold)", v => ((4 - v + 1) / 5) * 100));
+    trendCard.appendChild(renderTrendRow("Energy", "energy", 5, "var(--orange)"));
+    trendCard.appendChild(renderTrendRow("Sleep", "sleep", 5, "var(--blue)"));
+    wrap.appendChild(trendCard);
+  }
+
+  // ─── By moment type ───
+  const typeCard = h("div", {className:"card"});
+  typeCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"🧭"), "By moment type"));
+  const typeGrid = h("div", {style:{display:"grid",gridTemplateColumns:"repeat(2,1fr)",gap:"8px"}});
+  MOMENT_TYPES.forEach(t => {
+    const count = stats.typeCounts[t.id] || 0;
+    typeGrid.appendChild(h("div", {style:{padding:"12px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)",display:"flex",alignItems:"center",gap:"10px"}},
+      h("span", {style:{fontSize:"22px"}}, t.icon),
+      h("div", {style:{flex:"1"}},
+        h("div", {style:{fontSize:"11px",color:"var(--text3)",letterSpacing:".08em",textTransform:"uppercase"}}, t.label),
+        h("div", {style:{fontSize:"18px",fontWeight:"700",color:t.color}}, String(count))
+      )
+    ));
+  });
+  typeCard.appendChild(typeGrid);
+  wrap.appendChild(typeCard);
+
+  // ─── Goals progress ───
+  const goalKey = mode === "week" ? weekOf(anchor) : monthOf(anchor);
+  const periodGoals = mode === "week" ? (state.wG[goalKey] || []) : (state.mG[goalKey] || []);
+  if(periodGoals.length) {
+    const goalsCard = h("div", {className:"card"});
+    goalsCard.appendChild(h("div", {className:"card-title"}, h("span",{className:"icon"},"🎯"), "Goals this " + mode));
+    const done = periodGoals.filter(g => g.done).length;
+    goalsCard.appendChild(h("div", {style:{fontSize:"12px",color:"var(--text3)",marginBottom:"12px"}}, done + " / " + periodGoals.length + " complete"));
+    periodGoals.forEach(g => {
+      goalsCard.appendChild(h("div", {style:{display:"flex",alignItems:"center",gap:"10px",padding:"8px 0"}},
+        h("span", {style:{fontSize:"16px"}}, g.done ? "✅" : "⬜"),
+        h("span", {style:{fontSize:"14px",color:g.done?"var(--text3)":"var(--text)",textDecoration:g.done?"line-through":"none",flex:"1"}}, g.text || "Untitled")
+      ));
+    });
+    wrap.appendChild(goalsCard);
+  }
+
+  // ─── Wins highlight reel ───
+  const winsList = [];
+  const lossesList = [];
+  dates.forEach(date => {
+    const day = state.days[date];
+    if(!day) return;
+    (day.moments || []).forEach(m => {
+      if(m.type === "win") winsList.push({...m, date});
+      else if(m.type === "loss") lossesList.push({...m, date});
+    });
+  });
+  if(winsList.length) {
+    const winsCard = h("div", {className:"card"});
+    winsCard.appendChild(h("div", {className:"card-title", style:{color:"var(--green)"}}, h("span",{className:"icon"},"🏆"), "Wins this " + mode));
+    winsList.slice(0, 12).forEach(w => {
+      winsCard.appendChild(h("div", {style:{padding:"10px 0",borderBottom:"1px solid var(--border)"}},
+        h("div", {style:{fontSize:"10px",color:"var(--text3)",marginBottom:"4px"}}, fmtS(w.date)),
+        h("div", {style:{fontSize:"13px",color:"var(--text)",lineHeight:"1.5"}}, w.text)
+      ));
+    });
+    if(winsList.length > 12) winsCard.appendChild(h("div", {style:{textAlign:"center",fontSize:"12px",color:"var(--text3)",marginTop:"8px"}}, "+ " + (winsList.length-12) + " more"));
+    wrap.appendChild(winsCard);
+  }
+  if(lossesList.length) {
+    const lossesCard = h("div", {className:"card"});
+    lossesCard.appendChild(h("div", {className:"card-title", style:{color:"var(--red)"}}, h("span",{className:"icon"},"❌"), "Losses this " + mode));
+    lossesList.slice(0, 12).forEach(w => {
+      lossesCard.appendChild(h("div", {style:{padding:"10px 0",borderBottom:"1px solid var(--border)"}},
+        h("div", {style:{fontSize:"10px",color:"var(--text3)",marginBottom:"4px"}}, fmtS(w.date)),
+        h("div", {style:{fontSize:"13px",color:"var(--text)",lineHeight:"1.5"}}, w.text)
+      ));
+    });
+    if(lossesList.length > 12) lossesCard.appendChild(h("div", {style:{textAlign:"center",fontSize:"12px",color:"var(--text3)",marginTop:"8px"}}, "+ " + (lossesList.length-12) + " more"));
+    wrap.appendChild(lossesCard);
+  }
+}
+
+// ─── Sunday auto-popup ───
+function maybeShowSundayPopup() {
+  const now = new Date();
+  // Monthly popup on the 1st of the month (takes priority)
+  if(now.getDate() === 1) {
+    const todayStr = today();
+    const dismissed = DB.get("monthDismissed").date;
+    if(dismissed !== todayStr) {
+      // summarize last month
+      const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 15);
+      const lastMonthAnchor = dateKey(lastMonth);
+      const monthDates = getMonthRange(lastMonthAnchor);
+      let hasData = false;
+      for(const d of monthDates) {
+        const day = state.days[d];
+        if(day && (day.moments?.length || day.morning?.text || day.night?.text)) { hasData = true; break; }
+      }
+      if(hasData) {
+        state.modal = {type:"monthPopup", anchor: lastMonthAnchor};
+        render();
+        return;
+      }
+    }
+  }
+  if(now.getDay() !== 0) return; // not Sunday
+  const todayStr = today();
+  const dismissed = DB.get("sundayDismissed").date;
+  if(dismissed === todayStr) return;
+  const week = getWeekRange(todayStr);
+  let hasData = false;
+  for(const d of week) {
+    const day = state.days[d];
+    if(day && (day.moments?.length || day.morning?.text || day.night?.text)) { hasData = true; break; }
+  }
+  if(!hasData) return;
+  state.modal = {type:"sundayPopup"};
+  render();
+}
+
+
+// ─── GOALS ───
+function renderGoals(wrap) {
+  const cd = state.dayDate; // daily key = current dayDate
+  const cw = weekOf(state.dayDate), cm = monthOf(state.dayDate);
+  const cdG = (state.dG[cd] || []).filter(g => !g.killed);
+  const cwG = (state.wG[cw] || []).filter(g => !g.killed);
+  const cmG = (state.mG[cm] || []).filter(g => !g.killed);
+
+  // ─── Daily card ───
+  const dCard = h("div", {className:"card"});
+  dCard.appendChild(h("div", {className:"card-title", style:{color:"var(--orange)"}},
+    h("span", {className:"icon"}, "☀️"), "Daily — " + fmtS(cd)
+  ));
+  cdG.forEach(g => {
+    const streak = dailyGoalStreak(g);
+    const row = h("div", {className:"goal"},
+      h("button", {className:"goal-check"+(g.done?" done":""), onClick:()=>{
+        g.done = !g.done;
+        saveGoals(); render();
+      }}, g.done?"✓":""),
+      h("div", {style:{flex:"1",display:"flex",flexDirection:"column",gap:"2px"}},
+        h("span", {className:"goal-text"+(g.done?" done":"")}, g.text),
+        streak > 1 ? h("span", {style:{fontSize:"10px",color:"var(--orange)",letterSpacing:".05em",fontWeight:"600"}}, "↻ Day " + streak) : null
+      ),
+      h("button", {className:"goal-rm", title:"Kill this goal", onClick:()=>{
+        // Mark killed in original date entry, not just today's view
+        Object.values(state.dG).forEach(list => {
+          const found = list.find(x => x.id === g.id);
+          if(found) found.killed = true;
+        });
+        saveGoals(); render();
+      }}, "×")
+    );
+    dCard.appendChild(row);
+  });
+  if(!cdG.length) dCard.appendChild(h("div", {style:{color:"var(--text4)",fontSize:"13px",padding:"8px"}}, "No daily goals yet"));
+
+  // Soft cap warning at 5+
+  if(cdG.length >= 5) {
+    dCard.appendChild(h("div", {style:{marginTop:"10px",padding:"10px 12px",background:"rgba(232,168,84,.08)",border:"1px solid rgba(232,168,84,.3)",borderRadius:"var(--radius-sm)",fontSize:"12px",color:"var(--orange)",lineHeight:"1.5"}},
+      "⚠️ " + cdG.length + " daily goals — this is a journal, not a task manager. Fewer goals = better follow-through."
+    ));
+  }
+
+  const dInp = h("input", {placeholder:"Daily goal..."});
+  dInp.value = state.newGoalScope === "daily" ? state.newGoal : "";
+  dInp.addEventListener("focus", () => { state.newGoalScope = "daily"; });
+  dInp.addEventListener("input", e => { state.newGoalScope = "daily"; state.newGoal = e.target.value; });
+  const addD = () => {
+    if(state.newGoalScope !== "daily") return;
+    if(!state.newGoal.trim()) return;
+    if(!state.dG[cd]) state.dG[cd] = [];
+    state.dG[cd].push({
+      id: Date.now() + Math.random(),
+      text: state.newGoal.trim(),
+      done: false,
+      killed: false,
+      firstSeen: cd,
+      at: nowISO()
+    });
+    state.newGoal = ""; saveGoals(); render();
+  };
+  dInp.addEventListener("keydown", e => { if(e.key==="Enter") addD(); });
+  dCard.appendChild(h("div", {style:{display:"flex",gap:"8px",marginTop:"10px"}},
+    dInp,
+    h("button", {className:"btn", style:{width:"auto",padding:"10px 20px",background:"var(--orange)",color:"var(--bg)"}, onClick:addD}, "+")
+  ));
+  if(cdG.length) {
+    const done = cdG.filter(g=>g.done).length;
+    dCard.appendChild(h("div", {className:"prog"}, done+"/"+cdG.length+" done",
+      h("div", {className:"prog-bar"}, h("div", {className:"prog-fill", style:{width:(done/cdG.length*100)+"%",background:"var(--orange)"}}))
+    ));
+  }
+  wrap.appendChild(dCard);
+
+  // ─── Weekly card ───
+  const wCard = h("div", {className:"card"});
+  wCard.appendChild(h("div", {className:"card-title"},
+    h("span", {className:"icon"}, "📅"), "Weekly — "+fmtS(cw)
+  ));
+  cwG.forEach(g => {
+    wCard.appendChild(h("div", {className:"goal"},
+      h("button", {className:"goal-check"+(g.done?" done":""), onClick:()=>{g.done=!g.done; saveGoals(); render();}}, g.done?"✓":""),
+      h("span", {className:"goal-text"+(g.done?" done":"")}, g.text),
+      h("button", {className:"goal-rm", onClick:()=>{
+        const found = (state.wG[cw]||[]).find(x => x.id === g.id);
+        if(found) found.killed = true;
+        saveGoals(); render();
+      }}, "×")
+    ));
+  });
+  if(!cwG.length) wCard.appendChild(h("div", {style:{color:"var(--text4)",fontSize:"13px",padding:"8px"}}, "No weekly goals yet"));
+  const wInp = h("input", {placeholder:"Weekly goal..."});
+  wInp.value = state.newGoalScope === "weekly" ? state.newGoal : "";
+  wInp.addEventListener("focus", () => { state.newGoalScope = "weekly"; });
+  wInp.addEventListener("input", e => { state.newGoalScope = "weekly"; state.newGoal = e.target.value; });
+  const addW = () => {
+    if(state.newGoalScope !== "weekly") return;
+    if(!state.newGoal.trim()) return;
+    if(!state.wG[cw]) state.wG[cw] = [];
+    state.wG[cw].push({id:Date.now()+Math.random(),text:state.newGoal.trim(),done:false,killed:false,at:nowISO()});
+    state.newGoal = ""; saveGoals(); render();
+  };
+  wInp.addEventListener("keydown", e => { if(e.key==="Enter") addW(); });
+  wCard.appendChild(h("div", {style:{display:"flex",gap:"8px",marginTop:"10px"}},
+    wInp,
+    h("button", {className:"btn btn-gold", style:{width:"auto",padding:"10px 20px"}, onClick:addW}, "+")
+  ));
+  if(cwG.length) {
+    const done = cwG.filter(g=>g.done).length;
+    wCard.appendChild(h("div", {className:"prog"}, done+"/"+cwG.length+" done",
+      h("div", {className:"prog-bar"}, h("div", {className:"prog-fill", style:{width:(done/cwG.length*100)+"%",background:"var(--gold)"}}))
+    ));
+  }
+  wrap.appendChild(wCard);
+
+  // ─── Monthly card ───
+  const mCard = h("div", {className:"card"});
+  mCard.appendChild(h("div", {className:"card-title", style:{color:"var(--purple)"}},
+    h("span", {className:"icon"}, "🗓️"), "Monthly — "+fmtM(cm)
+  ));
+  cmG.forEach(g => {
+    mCard.appendChild(h("div", {className:"goal"},
+      h("button", {className:"goal-check"+(g.done?" done":""), onClick:()=>{g.done=!g.done; saveGoals(); render();}}, g.done?"✓":""),
+      h("span", {className:"goal-text"+(g.done?" done":"")}, g.text),
+      h("button", {className:"goal-rm", onClick:()=>{
+        const found = (state.mG[cm]||[]).find(x => x.id === g.id);
+        if(found) found.killed = true;
+        saveGoals(); render();
+      }}, "×")
+    ));
+  });
+  if(!cmG.length) mCard.appendChild(h("div", {style:{color:"var(--text4)",fontSize:"13px",padding:"8px"}}, "No monthly goals yet"));
+  const mInp = h("input", {placeholder:"Monthly goal..."});
+  mInp.value = state.newGoalScope === "monthly" ? state.newGoal : "";
+  mInp.addEventListener("focus", () => { state.newGoalScope = "monthly"; });
+  mInp.addEventListener("input", e => { state.newGoalScope = "monthly"; state.newGoal = e.target.value; });
+  const addM = () => {
+    if(state.newGoalScope !== "monthly") return;
+    if(!state.newGoal.trim()) return;
+    if(!state.mG[cm]) state.mG[cm] = [];
+    state.mG[cm].push({id:Date.now()+Math.random(),text:state.newGoal.trim(),done:false,killed:false,at:nowISO()});
+    state.newGoal = ""; saveGoals(); render();
+  };
+  mInp.addEventListener("keydown", e => { if(e.key==="Enter") addM(); });
+  mCard.appendChild(h("div", {style:{display:"flex",gap:"8px",marginTop:"10px"}},
+    mInp,
+    h("button", {className:"btn", style:{width:"auto",padding:"10px 20px",background:"var(--purple)",color:"var(--bg)"}, onClick:addM}, "+")
+  ));
+  if(cmG.length) {
+    const done = cmG.filter(g=>g.done).length;
+    mCard.appendChild(h("div", {className:"prog"}, done+"/"+cmG.length+" done",
+      h("div", {className:"prog-bar"}, h("div", {className:"prog-fill", style:{width:(done/cmG.length*100)+"%",background:"var(--purple)"}}))
+    ));
+  }
+  wrap.appendChild(mCard);
+}
+
+// ─── SYNC ───
+// ─── FEEDBACK ───
+const FEEDBACK_TAGS = [
+  {id:"love",     icon:"👍", label:"Love",     color:"var(--green)"},
+  {id:"hate",     icon:"👎", label:"Hate",     color:"var(--red)"},
+  {id:"bug",      icon:"🐛", label:"Bug",      color:"var(--orange)"},
+  {id:"idea",     icon:"💡", label:"Idea",     color:"var(--yellow)"},
+  {id:"annoying", icon:"😒", label:"Annoying", color:"var(--purple)"},
+];
+
+async function sendFeedback() {
+  const text = (state.feedbackDraft || "").trim();
+  if(!text) { toast("Write something first"); return; }
+  if(!state.drive.signedIn) {
+    toast("Sign in to Drive first (Sync tab)");
+    state.view = "settings"; render();
+    return;
+  }
+  if(!CONFIG.feedbackFolderId) {
+    toast("Feedback folder not configured");
+    return;
+  }
+  state.feedbackSending = true;
+  render();
+  try {
+    await ensureFreshToken();
+    const now = new Date();
+    const ts = nowISO();
+    const safeTs = ts.replace(/[:.]/g, "-");
+    const fileName = `feedback-${CONFIG.userName.toLowerCase()}-${safeTs}.json`;
+    const payload = {
+      from: CONFIG.userName,
+      sentAt: ts,
+      appVersion: "v8",
+      tags: [...state.feedbackTags],
+      text: text,
+      device: navigator.userAgent || "unknown",
+    };
+    const body = JSON.stringify(payload, null, 2);
+    // Upload to the feedback folder (shared with Jimmy)
+    const metadata = {
+      name: fileName,
+      mimeType: "application/json",
+      parents: [CONFIG.feedbackFolderId],
+    };
+    const boundary = "-------feedback" + Date.now();
+    const delim = "\r\n--" + boundary + "\r\n";
+    const close = "\r\n--" + boundary + "--";
+    const mpBody =
+      delim + "Content-Type: application/json; charset=UTF-8\r\n\r\n" +
+      JSON.stringify(metadata) +
+      delim + "Content-Type: application/json\r\n\r\n" +
+      body + close;
+    const res = await fetch(`${DRIVE_UPLOAD}/files?uploadType=multipart`, {
+      method: "POST",
+      headers: {
+        Authorization: "Bearer " + state.drive.accessToken,
+        "Content-Type": "multipart/related; boundary=" + boundary,
+      },
+      body: mpBody,
+    });
+    if(!res.ok) {
+      const errText = await res.text();
+      throw new Error("Send failed (" + res.status + "): " + errText);
+    }
+    // Record locally so Maya can see her own history
+    const history = DB.get("feedbackHistory").list || [];
+    history.unshift({sentAt: ts, tags: payload.tags, text: payload.text});
+    DB.set("feedbackHistory", {list: history.slice(0, 50)});
+    // Clear composer
+    state.feedbackDraft = "";
+    state.feedbackTags = [];
+    state.feedbackSending = false;
+    toast("💬 Sent to Jimmy");
+    render();
+  } catch(e) {
+    console.error("Feedback send failed:", e);
+    state.feedbackSending = false;
+    toast("Send failed — try again");
+    render();
+  }
+}
+
+function renderSettings(wrap) {
+  const d = state.drive;
+  const dayCount = Object.keys(state.days).length;
+  const totalMoments = Object.values(state.days).reduce((s,dd) => s + (dd.moments?.length||0), 0);
+
+  // ═══════════════════════════════════════════════
+  // SECTION 1 — Google Drive (sync status + sign in)
+  // ═══════════════════════════════════════════════
+  const driveCard = h("div", {className:"card"});
+  driveCard.appendChild(h("div", {className:"card-title", style:{color:"#4285f4"}},
+    h("span", {className:"icon"}, "☁️"), "Google Drive Sync"
+  ));
+
+  if(!d.ready) {
+    driveCard.appendChild(h("div", {style:{padding:"16px",textAlign:"center",color:"var(--text3)",fontSize:"13px"}},
+      "Loading Google libraries…"));
+  } else if(!d.signedIn && d.status !== "needsAuth") {
+    driveCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",lineHeight:"1.6",marginBottom:"14px"}},
+      "Sign in once with your Google account. After that, every entry auto-saves to Drive within a few seconds. The app only sees files it creates — your other Drive files stay private."
+    ));
+    driveCard.appendChild(h("button", {
+      className:"btn",
+      style:{background:"#4285f4",color:"#fff",fontWeight:"600",width:"100%",padding:"14px"},
+      onClick: () => driveSignIn(false)
+    }, "🔐 Sign in with Google"));
+    if(d.lastError) {
+      driveCard.appendChild(h("div", {style:{marginTop:"12px",padding:"10px",background:"rgba(200,126,126,.1)",border:"1px solid var(--red)",borderRadius:"var(--radius-sm)",fontSize:"12px",color:"var(--red)"}},
+        "Last error: " + d.lastError));
+    }
+  } else if(d.status === "needsAuth") {
+    driveCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",lineHeight:"1.6",marginBottom:"14px"}},
+      "Your Drive connection expired. Tap below to reconnect — Google already knows your account, so this is one tap. Your local data is safe."
+    ));
+    driveCard.appendChild(h("button", {
+      className:"btn",
+      style:{background:"var(--orange)",color:"var(--bg)",fontWeight:"600",width:"100%",padding:"14px",marginBottom:"10px"},
+      onClick: () => driveSignIn(false)
+    }, "↻ Reconnect Drive"));
+    driveCard.appendChild(h("button", {
+      className:"btn btn-ghost",
+      style:{width:"100%",fontSize:"12px"},
+      onClick: () => {
+        if(confirm("Sign out completely? You'll need to pick your account on next sign-in.")) driveSignOut();
+      }
+    }, "Sign out instead"));
+  } else {
+    const statusText = d.status === "synced" ? "✓ All changes saved to Drive"
+                     : d.status === "syncing" ? "↻ Syncing now…"
+                     : d.status === "error" ? "⚠️ Sync error"
+                     : d.status === "offline" ? "📴 Offline — will sync when reconnected"
+                     : "Signed in, idle";
+    const statusColor = d.status === "synced" ? "var(--green)"
+                      : d.status === "syncing" ? "var(--yellow)"
+                      : d.status === "error" ? "var(--red)"
+                      : d.status === "offline" ? "var(--orange)"
+                      : "var(--text2)";
+    driveCard.appendChild(h("div", {style:{padding:"12px",background:"var(--bg3)",borderRadius:"var(--radius-sm)",border:"1px solid var(--border)",marginBottom:"12px"}},
+      h("div", {style:{fontSize:"13px",color:statusColor,fontWeight:"600",marginBottom:"4px"}}, statusText),
+      d.userEmail ? h("div", {style:{fontSize:"11px",color:"var(--text3)"}}, "Account: " + d.userEmail) : null,
+      d.lastSyncAt ? h("div", {style:{fontSize:"11px",color:"var(--text3)",marginTop:"2px"}}, "Last sync: " + new Date(d.lastSyncAt).toLocaleString()) : null,
+      d.lastError && d.status === "error" ? h("div", {style:{fontSize:"11px",color:"var(--red)",marginTop:"6px",lineHeight:"1.4"}}, d.lastError) : null
+    ));
+    driveCard.appendChild(h("div", {style:{display:"flex",gap:"8px",marginBottom:"12px"}},
+      h("button", {
+        className:"btn",
+        style:{flex:"2",background:"var(--gold)",color:"var(--bg)",fontWeight:"600"},
+        onClick: () => { performDriveSync(); }
+      }, "↻ Sync now"),
+      h("button", {
+        className:"btn btn-ghost",
+        style:{flex:"1"},
+        onClick: () => {
+          if(confirm("Sign out of Google Drive? Local data stays intact.")) driveSignOut();
+        }
+      }, "Sign out")
+    ));
+    driveCard.appendChild(h("div", {style:{fontSize:"11px",color:"var(--text3)",lineHeight:"1.6",padding:"8px 4px"}},
+      "Auto-syncs ~2.5s after every save. Files written: ",
+      h("code", {style:{color:"var(--gold)"}}, "maya-journal-latest.json"),
+      " (rolling) and ",
+      h("code", {style:{color:"var(--gold)"}}, "maya-journal-" + today() + ".json"),
+      " (daily snapshot)."
+    ));
+  }
+  wrap.appendChild(driveCard);
+
+  // ═══════════════════════════════════════════════
+  // SECTION 2 — Feedback to Jimmy
+  // ═══════════════════════════════════════════════
+  const fbIntro = h("div", {className:"card"});
+  fbIntro.appendChild(h("div", {className:"card-title", style:{color:"var(--gold)"}},
+    h("span", {className:"icon"}, "💬"), "Send feedback to Jimmy"
+  ));
+  fbIntro.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",lineHeight:"1.6"}},
+    "This goes to a folder Jimmy can see — ",
+    h("strong", {style:{color:"var(--text)"}}, "only the text you write here, nothing else."),
+    " Your journal entries, moods, goals, and everything else stay private in your own Drive."
+  ));
+
+  const ta = h("textarea", {
+    placeholder: "Anything — what you like, what's annoying, bugs, features you'd want...",
+    rows: 5,
+    style:{minHeight:"110px",marginTop:"14px"}
+  });
+  ta.value = state.feedbackDraft || "";
+  ta.addEventListener("input", e => { state.feedbackDraft = e.target.value; });
+  fbIntro.appendChild(ta);
+
+  fbIntro.appendChild(h("div", {className:"rundown-label", style:{marginTop:"12px"}},
+    "Tags",
+    h("span", {style:{color:"var(--text3)",marginLeft:"6px",fontWeight:"400",fontSize:"11px"}}, "(optional, pick any)")
+  ));
+  const tagWrap = h("div", {className:"pills"});
+  FEEDBACK_TAGS.forEach(t => {
+    const selected = state.feedbackTags.includes(t.id);
+    tagWrap.appendChild(h("button", {
+      className: "pill" + (selected ? " on" : ""),
+      style: selected ? {background: t.color, borderColor: t.color, color: "var(--bg)"} : {},
+      onClick: () => {
+        if(selected) state.feedbackTags = state.feedbackTags.filter(x => x !== t.id);
+        else state.feedbackTags = [...state.feedbackTags, t.id];
+        render();
+      }
+    }, t.icon + " " + t.label));
+  });
+  fbIntro.appendChild(tagWrap);
+
+  const canSend = (state.feedbackDraft || "").trim().length > 0 && !state.feedbackSending && d.signedIn;
+  fbIntro.appendChild(h("button", {
+    className: "btn btn-gold",
+    style: {
+      marginTop: "14px",
+      width: "100%",
+      padding: "14px",
+      fontWeight: "600",
+      opacity: canSend ? 1 : 0.5,
+      background: state.feedbackSending ? "var(--text3)" : "var(--gold)",
+    },
+    onClick: canSend ? sendFeedback : null
+  }, state.feedbackSending ? "Sending…" : (d.signedIn ? "📤 Send to Jimmy" : "Sign in to Drive above first")));
+  wrap.appendChild(fbIntro);
+
+  // Feedback history
+  const history = DB.get("feedbackHistory").list || [];
+  if(history.length > 0) {
+    const histCard = h("div", {className:"card"});
+    histCard.appendChild(h("div", {className:"card-title", style:{color:"var(--text2)"}},
+      h("span", {className:"icon"}, "📜"), "What you've sent (" + history.length + ")"
+    ));
+    history.slice(0, 10).forEach(item => {
+      const itemTags = (item.tags || []).map(id => FEEDBACK_TAGS.find(t => t.id === id)).filter(Boolean);
+      const row = h("div", {style:{padding:"12px 0",borderBottom:"1px solid var(--border)"}});
+      row.appendChild(h("div", {style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"6px"}},
+        h("div", {style:{fontSize:"10px",color:"var(--text3)",letterSpacing:".04em"}},
+          new Date(item.sentAt).toLocaleDateString("en-US", {month:"short", day:"numeric"}) +
+          " · " + new Date(item.sentAt).toLocaleTimeString("en-US", {hour:"numeric", minute:"2-digit"})
+        ),
+        itemTags.length ? h("div", {style:{display:"flex",gap:"4px"}},
+          ...itemTags.map(t => h("span", {style:{fontSize:"11px"}}, t.icon))
+        ) : null
+      ));
+      row.appendChild(h("div", {style:{fontSize:"13px",color:"var(--text)",lineHeight:"1.5",whiteSpace:"pre-wrap"}},
+        item.text.length > 220 ? item.text.slice(0, 220) + "…" : item.text
+      ));
+      histCard.appendChild(row);
+    });
+    if(history.length > 10) {
+      histCard.appendChild(h("div", {style:{textAlign:"center",fontSize:"12px",color:"var(--text3)",marginTop:"10px"}},
+        "+ " + (history.length - 10) + " older"
+      ));
+    }
+    wrap.appendChild(histCard);
+  }
+
+  // ═══════════════════════════════════════════════
+  // SECTION 3 — Privacy summary
+  // ═══════════════════════════════════════════════
+  const privCard = h("div", {className:"card"});
+  privCard.appendChild(h("div", {className:"card-title", style:{color:"var(--teal)"}},
+    h("span", {className:"icon"}, "🔒"), "Your privacy"
+  ));
+  privCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"12px",lineHeight:"1.7"}},
+    h("div", {style:{marginBottom:"8px"}}, "• Your journal data lives in ", h("strong",{style:{color:"var(--text)"}},"your"), " Drive folder. Jimmy has no access."),
+    h("div", {style:{marginBottom:"8px"}}, "• Feedback goes to a separate folder in Jimmy's Drive — only what you type above."),
+    h("div", {style:{marginBottom:"8px"}}, "• You can see every message you've sent in the list above."),
+    h("div", null, "• Nothing is sent automatically. You control what you share.")
+  ));
+  wrap.appendChild(privCard);
+
+  // ═══════════════════════════════════════════════
+  // SECTION 4 — Account info
+  // ═══════════════════════════════════════════════
+  const acctCard = h("div", {className:"card"});
+  acctCard.appendChild(h("div", {className:"card-title"},
+    h("span", {className:"icon"}, "👤"), "Account"
+  ));
+  acctCard.appendChild(h("div", {style:{display:"flex",flexDirection:"column",gap:"10px",fontSize:"13px"}},
+    h("div", {style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border)"}},
+      h("span", {style:{color:"var(--text3)"}}, "User"),
+      h("span", {style:{color:"var(--text)",fontWeight:"600"}}, CONFIG.userName)
+    ),
+    h("div", {style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border)"}},
+      h("span", {style:{color:"var(--text3)"}}, "Total days"),
+      h("span", {style:{color:"var(--text)",fontWeight:"600"}}, String(dayCount))
+    ),
+    h("div", {style:{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:"1px solid var(--border)"}},
+      h("span", {style:{color:"var(--text3)"}}, "Total moments"),
+      h("span", {style:{color:"var(--text)",fontWeight:"600"}}, String(totalMoments))
+    ),
+    h("div", {style:{display:"flex",justifyContent:"space-between",padding:"8px 0"}},
+      h("span", {style:{color:"var(--text3)"}}, "Drive folder"),
+      h("span", {style:{color:"var(--text)",fontWeight:"600",fontSize:"11px",fontFamily:"monospace"}}, CONFIG.driveFolderId.slice(0,12) + "…")
+    )
+  ));
+  wrap.appendChild(acctCard);
+
+  // ═══════════════════════════════════════════════
+  // SECTION 5 — Manual export
+  // ═══════════════════════════════════════════════
+  const exportCard = h("div", {className:"card"});
+  exportCard.appendChild(h("div", {className:"card-title"},
+    h("span", {className:"icon"}, "📦"), "Manual Export"
+  ));
+  exportCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"12px",lineHeight:"1.5",marginBottom:"12px"}},
+    "Download a JSON snapshot to your device — useful as a one-off backup."
+  ));
+  exportCard.appendChild(h("button", {
+    className:"btn btn-ghost",
+    style:{width:"100%"},
+    onClick: () => {
+      const blob = new Blob([buildSyncPayload()], {type:"application/json"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = "maya-journal-" + today() + ".json";
+      a.click(); URL.revokeObjectURL(url);
+      toast("Exported ✓");
+    }
+  }, "📦 Download JSON"));
+  wrap.appendChild(exportCard);
+
+  // ═══════════════════════════════════════════════
+  // SECTION 6 — Reset (danger zone)
+  // ═══════════════════════════════════════════════
+  const resetCard = h("div", {className:"card"});
+  resetCard.appendChild(h("div", {className:"card-title", style:{color:"var(--red)"}},
+    h("span", {className:"icon"}, "⚠️"), "Reset Data"
+  ));
+  resetCard.appendChild(h("div", {style:{color:"var(--text2)",fontSize:"13px",lineHeight:"1.6",marginBottom:"12px"}},
+    "Deletes all local data. Drive backups stay intact and can be re-imported manually. Export first if you want a local copy."
+  ));
+  resetCard.appendChild(h("button", {
+    className:"btn",
+    style:{background:"var(--red)",color:"var(--bg)",width:"100%"},
+    onClick: () => {
+      if(confirm("Delete ALL local journal data permanently?")) {
+        if(confirm("Really? There's no undo. (Drive backups are unaffected.)")) {
+          localStorage.removeItem(STORAGE_PREFIX + "days");
+          localStorage.removeItem(STORAGE_PREFIX + "daily");
+          localStorage.removeItem(STORAGE_PREFIX + "weekly");
+          localStorage.removeItem(STORAGE_PREFIX + "monthly");
+          localStorage.removeItem(STORAGE_PREFIX + "sundayDismissed");
+          localStorage.removeItem(STORAGE_PREFIX + "monthDismissed");
+          state.days = {}; state.dG = {}; state.wG = {}; state.mG = {};
+          state.dayDate = today(); initDay();
+          toast("Local data cleared");
+          render();
+        }
+      }
+    }
+  }, "🗑️ Delete All Local Data"));
+  wrap.appendChild(resetCard);
+}
+
+// Initial render
+render();
+maybeShowSundayPopup();
+driveInit();
+</script>
+</body>
+</html>
